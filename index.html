@@ -1,0 +1,105 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>hello phaser!</title>
+        <script src="js/phaser.min.js"></script>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+
+    window.onload = function() {
+
+        var game = new Phaser.Game(800, 600, Phaser.AUTO, 'main', { preload: preload, create: create, update: update, render: render });
+
+        function preload () {
+
+            game.load.tilemap('level1', 'tilesets/level1.json', null, Phaser.Tilemap.TILED_JSON);
+
+            game.load.image('candyshop', 'images/scene/candyshop.png');
+            game.load.image('candyshopwall', 'images/scene/candyshopwall.png');
+
+            game.load.spritesheet('player1', 'images/characters/tremel.png', 32, 48);
+
+        }
+
+        var map;
+        var layer;
+        var wall_layer;
+        var player1;
+        var speed = 100;
+
+        function create () {
+            game.physics.startSystem(Phaser.Physics.P2JS);
+            game.stage.backgroundColor = '#000000';
+
+            map = game.add.tilemap('level1');
+
+            map.addTilesetImage('candyshop', 'candyshop');
+            map.addTilesetImage('candyshopwall', 'candyshopwall');
+
+            
+
+            layer1 = map.createLayer('floor');
+            //layer1.resizeWorld();
+
+            wall_layer = map.createLayer('wall');
+            //wall_layer.resizeWorld();
+
+            map.setCollisionBetween(1, 200, true, 'wall');
+
+            game.physics.p2.convertTilemap(map, wall_layer);
+
+            /**
+             * Add player
+             */
+            player1 = game.add.sprite(50, 100, 'player1');
+            //player1.body.fixedRotation = true;
+
+            player1.animations.add('walk_down', [0,1,2,3], true);
+            player1.animations.add('walk_left', [4,5,6,7], true);
+            player1.animations.add('walk_right', [8,9,10,11], true);
+            player1.animations.add('walk_up', [12,13,14,15], true);            
+
+            game.physics.p2.enable(player1);
+            player1.body.fixedRotation = true;
+            
+            game.camera.follow(player1);
+
+
+            game.physics.p2.setBoundsToWorld(true, true, true, true, false);
+
+        }
+
+        function update() {
+            player1.body.velocity.x = 0;
+            player1.body.velocity.y = 0;
+
+            if(game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+                player1.body.velocity.x -= speed;
+                player1.animations.play('walk_left', 15, true);
+            } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+                player1.body.velocity.x += speed;
+                player1.animations.play('walk_right', 15, true);
+            } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+                player1.body.velocity.y -= speed;
+                player1.animations.play('walk_up', 15, true);
+            } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+                player1.body.velocity.y += speed;
+                player1.animations.play('walk_down', 15, true);
+            } else {
+                player1.animations.stop(null, 0);
+            }
+        }
+
+        function render() {
+            
+        }
+
+    };
+
+    </script>
+
+    </body>
+</html>
