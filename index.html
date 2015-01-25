@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>hello phaser!</title>
+        <title>Out of Phase</title>
         <script src="js/phaser.min.js"></script>
     </head>
     <body>
@@ -15,23 +15,75 @@
 
         function preload () {
 
-            game.load.tilemap('level1', 'tilesets/level1.json', null, Phaser.Tilemap.TILED_JSON);
-
+            game.load.tilemap('level1', 'tilesets_json/level1.json', null, Phaser.Tilemap.TILED_JSON);
+            
+            // Scene assets          
             game.load.image('candyshop', 'images/scene/candyshop.png');
             game.load.image('candyshopwall', 'images/scene/candyshopwall.png');
-
             game.load.spritesheet('player1', 'images/characters/tremel.png', 32, 48);
+
+            // Trigger assets
+            game.load.image('empty', 'images/empty.png');
+            game.load.image('trigger.help', 'images/triggers/help.png');
+            game.load.image('trigger.trigger1', 'images/triggers/trigger1.png');
+            game.load.image('wall.top', 'images/triggers/wall_top.png');
+            game.load.image('wall.left', 'images/triggers/wall_left.png');
+            game.load.image('wall.right', 'images/triggers/wall_right.png');
+            game.load.image('wall.bottom', 'images/triggers/wall_bottom.png');
 
         }
 
         var map;
         var layer;
+        var trigger_objects;
         var wall_layer;
+        var object_layer;
+        var object2_layer;
         var player1;
+        var groups;
+        var trigger_objects;
         var speed = 100;
 
+        var triggers = {};
+        triggers['hitQuestion'] = function (body1, body2) {
+            //console.debug("hitQuestion");
+            //console.debug(body2);
+            return true;
+        }
+
+        triggers['openWall'] = function (target) {
+            //obj1.velocity.x = 0;
+            //obj1.velocity.y = 0;
+            for(i in trigger_objects.children) {
+                if(trigger_objects.children[i].groupID == target) {
+                    trigger_objects.children[i].kill();
+                }
+            }
+            return true;
+        }
+
+        function findObjectsByType(type, map, layer) {
+            var results = [];
+            map.objects[layer].forEach(function(element) {
+                if(element.properties.type == type) {
+                    element.y -= map.tileHeight;
+                    results.push(element);
+                }
+            });
+            return results;
+        }
+
+        function createFromTiledObject(element, group) {
+            var sprite = group.create(element.x, element.y, element.properties.sprite);
+            sprite.body.immovable = true;
+
+            Object.keys(element.properties).forEach(function(key) {
+                sprite[key] = element.properties[key];
+            })
+        }
+
         function create () {
-            game.physics.startSystem(Phaser.Physics.P2JS);
+            game.physics.startSystem(Phaser.Physics.ARCADE);
             game.stage.backgroundColor = '#000000';
 
             map = game.add.tilemap('level1');
@@ -39,42 +91,108 @@
             map.addTilesetImage('candyshop', 'candyshop');
             map.addTilesetImage('candyshopwall', 'candyshopwall');
 
-            
+           
 
             layer1 = map.createLayer('floor');
-            //layer1.resizeWorld();
-
             wall_layer = map.createLayer('wall');
-            //wall_layer.resizeWorld();
+            map.setCollisionBetween(100, 199, true, 'wall');
 
-            map.setCollisionBetween(1, 200, true, 'wall');
+            object_layer = map.createLayer('object');
+            map.setCollisionBetween(100, 199, true, 'object');
 
-            game.physics.p2.convertTilemap(map, wall_layer);
+
+            //map.setTileIndexCallback(12, hitQuestion, this, 'object');
+            //map.setTileIndexCallback([125, 127, 131], hiddenWallHandler, this, 'object');
+
+
+            trigger_objects = game.add.group();
+            trigger_objects.enableBody = true;
+            results = findObjectsByType('help', map, 'object2');
+            results.forEach(function(element) {
+                createFromTiledObject(element, trigger_objects)
+            }, this);
+
+            results = findObjectsByType('wall', map, 'object2');
+            results.forEach(function(element) {
+                createFromTiledObject(element, trigger_objects)
+            }, this);
+
+            results = findObjectsByType('trigger', map, 'object2');
+            results.forEach(function(element) {
+                createFromTiledObject(element, trigger_objects)
+            }, this);              
+
+
+
+            //map.setTileLocationCallback(0,0,10,10, hitQuestion, this, 'floor');
+
+
+            /**
+             * Player initialization
+             */
+             
+
 
             /**
              * Add player
              */
             player1 = game.add.sprite(50, 100, 'player1');
-            //player1.body.fixedRotation = true;
 
             player1.animations.add('walk_down', [0,1,2,3], true);
             player1.animations.add('walk_left', [4,5,6,7], true);
             player1.animations.add('walk_right', [8,9,10,11], true);
             player1.animations.add('walk_up', [12,13,14,15], true);            
 
-            game.physics.p2.enable(player1);
-            player1.body.fixedRotation = true;
-            
+
+            /**
+             * Remaining initialization
+             */
             game.camera.follow(player1);
 
 
-            game.physics.p2.setBoundsToWorld(true, true, true, true, false);
+            game.physics.enable(player1, Phaser.Physics.ARCADE);
 
         }
+
+        function object_collide_callback(obj1, obj2) {
+            //console.debug("Collide");
+            //console.debug(obj2);
+        }
+
+        function object_processing_callback(obj1, obj2) {
+            //console.debug("Processing");
+            //console.debug(obj2);
+        }
+
 
         function update() {
             player1.body.velocity.x = 0;
             player1.body.velocity.y = 0;
+            
+            game.physics.arcade.collide(player1, wall_layer);
+            game.physics.arcade.collide(player1, object_layer, object_collide_callback);
+
+            game.physics.arcade.collide(player1, trigger_objects, function (obj1, obj2) {
+                //console.debug(obj2)
+                return false;
+            },
+            function (obj1, obj2) {
+                if(obj2.solid == "true" || obj1.key == "player1" && obj2.solid == "player1" || obj1.key == "player2" && obj2.solid == "player2") {
+                    return true;
+                }
+                return false;
+            });
+
+            game.physics.arcade.overlap(player1, trigger_objects, function (obj1, obj2) {
+                if(obj2.hasOwnProperty('condition')) {
+                    if(obj2.hasOwnProperty('callback')) {
+                        triggers[obj2.callback]();
+                    }
+                } else if(obj2.hasOwnProperty('callback')) {
+                    triggers[obj2.callback](obj2.target);
+                }
+                return false;
+            });
 
             if(game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
                 player1.body.velocity.x -= speed;
@@ -91,6 +209,8 @@
             } else {
                 player1.animations.stop(null, 0);
             }
+
+            //getTileAbove/Below/Left/Right
         }
 
         function render() {
