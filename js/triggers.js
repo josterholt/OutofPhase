@@ -8,6 +8,10 @@ triggers['message1'] = function (player, object) {
     }
 }
 
+triggers['message2'] = function (player, object) {
+    UI.show("If these walls could talk");
+}
+
 triggers['openWall'] = function (obj1, obj2) {
     var count = 0;
     var t = [];
@@ -17,18 +21,43 @@ triggers['openWall'] = function (obj1, obj2) {
         }
     }
 
-    var overlap1 = game.physics.arcade.intersects(PLAYERS[0].body, t[0].body);
-    var overlap2 = game.physics.arcade.intersects(PLAYERS[1].body, t[1].body)
+    var overlap1 = game.physics.arcade.intersects(PLAYERS[0].body, t[1].body);
+    var overlap2 = game.physics.arcade.intersects(PLAYERS[1].body, t[0].body)
 
-    console.debug(overlap1 + " / " + overlap2);
     if(overlap1 && overlap2) {
-        for(i in trigger_objects.children) {
-            if(trigger_objects.children[i].groupID == obj2.target) {
-                trigger_objects.children[i].kill();
-            }
-        }
+        triggers['kill'](obj2.target);
     }
     return true;
+}
+
+triggers['openWall2'] = function (obj1, obj2) {
+    var count = 0;
+    var t = [];
+    for(i in trigger_objects.children) {
+        if(trigger_objects.children[i].group == "trigger3") {
+            t.push(trigger_objects.children[i]);
+        }
+    }
+
+    console.debug("testing");
+
+    var overlap1 = game.physics.arcade.intersects(PLAYERS[0].body, t[1].body);
+    var overlap2 = game.physics.arcade.intersects(PLAYERS[1].body, t[0].body)
+
+    if(overlap1 && overlap2) {
+        triggers['kill'](obj2.target);
+    }
+    return true;
+}
+
+
+triggers['kill'] = function(target_group) {
+    console.debug("Killing " + target_group);
+    for(i in trigger_objects.children) {
+        if(trigger_objects.children[i].group == target_group) {
+            trigger_objects.children[i].kill();
+        }
+    }
 }
 
 triggers['voodoo'] = function (target) {

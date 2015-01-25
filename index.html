@@ -15,6 +15,7 @@
     var PLAYERS = [];
     var PLAYER_HITBOXES = [];
     var trigger_objects = {};
+    var sections = {};
     var game;
     var map;
 
@@ -117,25 +118,36 @@
 
             trigger_objects = game.add.group();
             trigger_objects.enableBody = true;
-            results = findObjectsByType('help', map, 'object2');
+
+            sections = game.add.group();
+            sections.enableBody = true;
+
+            results = findObjectsByType('help', map, 'triggers');
             results.forEach(function(element) {
                 createFromTiledObject(element, trigger_objects)
             }, this);
 
-            results = findObjectsByType('wall', map, 'object2');
+            results = findObjectsByType('wall', map, 'triggers');
             results.forEach(function(element) {
                 createFromTiledObject(element, trigger_objects)
             }, this);
 
-            results = findObjectsByType('trigger', map, 'object2');
+            results = findObjectsByType('trigger', map, 'triggers');
             results.forEach(function(element) {
                 createFromTiledObject(element, trigger_objects)
             }, this);              
 
-            results = findObjectsByType('trigger.object', map, 'object2');
+            results = findObjectsByType('trigger.object', map, 'triggers');
             results.forEach(function(element) {
                 createFromTiledObject(element, trigger_objects)
             }, this);
+
+            results = findObjectsByType('section', map, 'triggers');
+            results.forEach(function(element) {
+                createFromTiledObject(element, sections)
+            }, this);
+
+
 
 
             /**
@@ -145,11 +157,14 @@
             PLAYER_HITBOXES[0] = initPlayerHitBox();
 
             PLAYERS[1] = initPlayer(2, "player2", 200, 100);
+            //PLAYERS[1] = initPlayer(2, "player2", 450, 450);
             PLAYER_HITBOXES[1] = initPlayerHitBox();
 
             CURRENT_PLAYER_INDEX = 0;
             CURRENT_PLAYER = PLAYERS[CURRENT_PLAYER_INDEX];
             CURRENT_PLAYER_HITBOX = PLAYER_HITBOXES[CURRENT_PLAYER_INDEX];
+
+            initTargetObjects(true);
 
             // Keyboard init
             this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -165,6 +180,27 @@
             UI = new _ui(game);
             UI.init();
 
+        }
+
+        function initTargetObjects(initial) {
+            for(i in trigger_objects.children) {
+                var obj = trigger_objects.children[i];
+                if("visible_condition" in obj) {
+                    if (obj.visible_condition == "PLAYER1" || obj.visible_condition == "PLAYER2") {
+                        // Hard coded hack intended to abstract
+                        // Player should be in region trigger is in to see change
+                        if (initial || game.physics.arcade.intersects(PLAYERS[1].body, sections.children[0])) {
+                            if (CURRENT_PLAYER.name.toUpperCase() != obj.visible_condition.toUpperCase()) {
+                                obj.visible = false;
+                            } else {
+                                obj.visible = true;
+                            }
+                        }
+                    } else if (obj.visible == "FALSE") {
+                        obj.visible = false;
+                    }
+                }
+            }
         }
 
         function initPlayer(player_num, player_sprite, x, y) {
@@ -192,6 +228,7 @@
             CURRENT_PLAYER_INDEX = index;
             CURRENT_PLAYER = PLAYERS[CURRENT_PLAYER_INDEX];
             CURRENT_PLAYER_HITBOX = PLAYER_HITBOXES[CURRENT_PLAYER_INDEX];
+            initTargetObjects();
         }
 
         function object_collide_callback(obj1, obj2) {
@@ -202,6 +239,20 @@
         function object_processing_callback(obj1, obj2) {
             //console.debug("Processing");
             //console.debug(obj2);
+        }
+
+        function runTrigger(obj1, obj2) {
+            if("callback" in obj2) {
+                //console.debug("Calling " + obj2.callback);
+                if(obj2.callback in triggers) {
+                    triggers[obj2.callback](obj1, obj2);
+                }
+            } else if("action" in obj2 && "target" in obj2 ) {
+                console.debug("Action: " + obj2.action);
+                if(obj2.action == "KILL") {
+                    triggers["kill"](obj2.target);
+                }
+            }
         }
 
 
@@ -224,7 +275,7 @@
 
             game.physics.arcade.collide(CURRENT_PLAYER, wall_layer);
             game.physics.arcade.collide(PLAYERS[0], PLAYERS[1]);
-            game.physics.arcade.collide(CURRENT_PLAYER, object_layer, object_collide_callback);
+            //game.physics.arcade.collide(CURRENT_PLAYER, object_layer, object_collide_callback);
 
             game.physics.arcade.collide(CURRENT_PLAYER, trigger_objects, function (obj1, obj2) {
                 //console.debug(obj2)
@@ -240,15 +291,10 @@
             var overlapping = game.physics.arcade.overlap(CURRENT_PLAYER, trigger_objects, function (obj1, obj2) {
                 //console.debug(obj2);
                 if("condition" in obj2) {
-                    if("callback" in obj2) {
-                        //console.debug("Calling " + obj2.callback);
-                        if(obj2.callback in triggers) {
-                            triggers[obj2.callback](obj1, obj2);
-                        }
-                    }
+                    runTrigger(obj1, obj2);
                 } else if(obj2.hasOwnProperty('callback')) {
                     //console.debug("Calling " + obj2.callback);
-                    triggers[obj2.callback](obj1, obj2);
+                    runTrigger(obj1, obj2);
                 }
                 return false;
             });
@@ -295,11 +341,10 @@
                 }
 
                 game.physics.arcade.overlap(CURRENT_PLAYER_HITBOX, trigger_objects, function (obj1, obj2) {
-                    if("condition" in obj2 && obj2.condition == "FACING_TOUCH") {
-                        if("callback" in obj2 && obj2.callback in triggers) {
-                            triggers[obj2.callback]();
-                        }
-                    }
+                    //if("condition" in obj2 && obj2.condition == "FACING_TOUCH") {
+                        runTrigger(obj1, obj2);
+                    //}
+
                 });
             }
         }

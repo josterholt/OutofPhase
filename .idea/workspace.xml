@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3c5205ce-b1c2-4c12-8479-05cc6998e490" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/triggers.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/utils.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/11sprite.png" afterPath="$PROJECT_DIR$/images/characters/11sprite.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/13sprite.png" afterPath="$PROJECT_DIR$/images/characters/13sprite.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/scene/JapaneseLamp.png" afterPath="$PROJECT_DIR$/images/scene/JapaneseLamp.png" />
@@ -35,6 +33,7 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/indianajones.png" afterPath="$PROJECT_DIR$/images/characters/indianajones.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/scene/karaoketileset.png" afterPath="$PROJECT_DIR$/images/scene/karaoketileset.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/kavi.png" afterPath="$PROJECT_DIR$/images/characters/kavi.png" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/triggers/letter.png" afterPath="$PROJECT_DIR$/images/triggers/letter.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/nickfury.png" afterPath="$PROJECT_DIR$/images/characters/nickfury.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/roshan.png" afterPath="$PROJECT_DIR$/images/characters/roshan.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/sadako.png" afterPath="$PROJECT_DIR$/images/characters/sadako.png" />
@@ -50,11 +49,20 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/weddingguy02.png" afterPath="$PROJECT_DIR$/images/characters/weddingguy02.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/xmasgirl1.png" afterPath="$PROJECT_DIR$/images/characters/xmasgirl1.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/xmasgirl3.png" afterPath="$PROJECT_DIR$/images/characters/xmasgirl3.png" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/.name" afterPath="$PROJECT_DIR$/.idea/.name" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tilesets/level1.json" afterPath="$PROJECT_DIR$/tilesets/level1.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tilesets_json/level1.json" afterPath="$PROJECT_DIR$/tilesets_json/level1.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tilesets/level1.tmx" afterPath="$PROJECT_DIR$/tilesets/level1.tmx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/outofphase.iml" afterPath="$PROJECT_DIR$/.idea/outofphase.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/phaser.min.js" afterPath="$PROJECT_DIR$/js/phaser.min.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" afterPath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/triggers.js" afterPath="$PROJECT_DIR$/js/triggers.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/utils.js" afterPath="$PROJECT_DIR$/js/utils.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="outofphase.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -81,8 +89,8 @@
       <file leaf-file-name="index.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-6.8" vertical-offset="187" max-vertical-offset="5457">
-              <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
+            <state vertical-scroll-proportion="-4.672727" vertical-offset="2429" max-vertical-offset="6222">
+              <caret line="158" column="12" selection-start-line="158" selection-start-column="12" selection-end-line="158" selection-end-column="12" />
               <folding />
             </state>
           </provider>
@@ -101,8 +109,8 @@
       <file leaf-file-name="triggers.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/js/triggers.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.36598492" vertical-offset="0" max-vertical-offset="929">
-              <caret line="20" column="70" selection-start-line="20" selection-start-column="70" selection-end-line="20" selection-end-column="70" />
+            <state vertical-scroll-proportion="0.6587729" vertical-offset="0" max-vertical-offset="1275">
+              <caret line="36" column="30" selection-start-line="0" selection-start-column="0" selection-end-line="69" selection-end-column="1" />
               <folding />
             </state>
           </provider>
@@ -296,16 +304,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-6.8" vertical-offset="187" max-vertical-offset="5457">
-          <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
+        <state vertical-scroll-proportion="-4.672727" vertical-offset="2429" max-vertical-offset="6222">
+          <caret line="158" column="12" selection-start-line="158" selection-start-column="12" selection-end-line="158" selection-end-column="12" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/js/triggers.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.36598492" vertical-offset="0" max-vertical-offset="929">
-          <caret line="20" column="70" selection-start-line="20" selection-start-column="70" selection-end-line="20" selection-end-column="70" />
+        <state vertical-scroll-proportion="0.6587729" vertical-offset="0" max-vertical-offset="1275">
+          <caret line="36" column="30" selection-start-line="0" selection-start-column="0" selection-end-line="69" selection-end-column="1" />
           <folding />
         </state>
       </provider>
