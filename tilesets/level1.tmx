@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="20">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="27">
  <tileset firstgid="1" name="candyshop" tilewidth="32" tileheight="32">
   <image source="../images/scene/candyshop.png" trans="ffffff" width="256" height="480"/>
  </tileset>
@@ -61,17 +61,16 @@
  </layer>
  <layer name="object" width="100" height="75">
   <data encoding="base64" compression="zlib">
-   eJzt2CEKACAQBEC7/tngx60mQcsdOgPbF7ZtKQBva9EFAEinRhfgyFgCAMCdHl3gQ7tPyh652APIxP8BAAAAAAAAAAAAAAAAAAAAAAAAAADAKyYtuQOt
+   eJzt2CEKADAMA8D+vGIfn+3szMK4g/hAXKoAAAByrREAAO706wIc7JHFHkAS/wcAAAAAAAAAAAAAAAAAAAAAAAAAAAC/2PUkA4o=
   </data>
  </layer>
  <objectgroup name="object2">
-  <object id="3" name="help1" x="108" y="16" width="24" height="27">
-   <properties>
-    <property name="solid" value="player2"/>
-    <property name="sprite" value="trigger.help"/>
-    <property name="type" value="help"/>
-   </properties>
-  </object>
+  <properties>
+   <property name="callback" value="voodoo"/>
+   <property name="condition" value="FACING_TOUCH"/>
+   <property name="sprite" value="wall.right"/>
+   <property name="type" value="trigger.object"/>
+  </properties>
   <object id="13" name="wall1" type="wall" gid="125" x="64" y="384">
    <properties>
     <property name="groupID" value="wall1"/>
@@ -115,11 +114,52 @@
   <object id="19" name="trigger1" type="trigger" gid="11" x="64" y="256">
    <properties>
     <property name="callback" value="openWall"/>
+    <property name="group" value="trigger1"/>
     <property name="info" value="player1"/>
     <property name="message" value="1"/>
     <property name="sprite" value="trigger.trigger1"/>
     <property name="target" value="wall1"/>
     <property name="type" value="trigger"/>
+   </properties>
+  </object>
+  <object id="20" name="help1" type="trigger.help" gid="12" x="112" y="80">
+   <properties>
+    <property name="callback" value="message1"/>
+    <property name="sprite" value="trigger.help"/>
+    <property name="type" value="help"/>
+   </properties>
+  </object>
+  <object id="23" name="help2" type="trigger.help" gid="12" x="96" y="512">
+   <properties>
+    <property name="sprite" value="trigger.help"/>
+    <property name="type" value="help"/>
+   </properties>
+  </object>
+  <object id="24" name="help3" type="trigger.help" gid="12" x="447" y="129">
+   <properties>
+    <property name="sprite" value="trigger.help"/>
+    <property name="type" value="help"/>
+   </properties>
+  </object>
+  <object id="25" name="trigger1" type="trigger" gid="11" x="161" y="255">
+   <properties>
+    <property name="callback" value="openWall"/>
+    <property name="group" value="trigger1"/>
+    <property name="info" value="player1"/>
+    <property name="message" value="1"/>
+    <property name="sprite" value="trigger.trigger1"/>
+    <property name="target" value="wall1"/>
+    <property name="type" value="trigger"/>
+   </properties>
+  </object>
+  <object id="26" name="object1" type="trigger.object" gid="129" x="136" y="175">
+   <properties>
+    <property name="callback" value="voodoo"/>
+    <property name="condition" value="FACING_TOUCH"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="wall.right"/>
+    <property name="sticky" value="true"/>
+    <property name="type" value="trigger.object"/>
    </properties>
   </object>
  </objectgroup>

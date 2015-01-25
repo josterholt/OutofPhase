@@ -4,14 +4,50 @@
         <meta charset="UTF-8" />
         <title>Out of Phase</title>
         <script src="js/phaser.min.js"></script>
+        <script src="js/triggers.js"></script>
+        <script src="js/utils.js"></script>
+
     </head>
     <body>
 
     <script type="text/javascript">
+    var UI;
+    var PLAYERS = [];
+    var PLAYER_HITBOXES = [];
+    var trigger_objects = {};
+    var game;
+    var map;
+
+    var WebFontConfig = {
+        active: function () {
+            //game.time.events.add(Phaser.Timer.SECOND, createText, this);
+        },
+        google: { families: [ 'Dancing+Script::latin', 'Covered+By+Your+Grace::latin' ] }
+    };
+
+    var FONTS = ['Dancing Script', 'Covered By Your Grace'];
+
 
     window.onload = function() {
 
-        var game = new Phaser.Game(800, 600, Phaser.AUTO, 'main', { preload: preload, create: create, update: update, render: render });
+        game = new Phaser.Game(800, 650, Phaser.AUTO, 'main', { preload: preload, create: create, update: update, render: render });
+
+        var layer;
+        var wall_layer;
+        var object_layer;
+        var object2_layer;
+        var groups;
+        var speed = 100;
+        var spaceKey;
+        var text = null;
+
+        var CURRENT_PLAYER;
+        var CURRENT_PLAYER_INDEX = 0;
+        var CURRENT_PLAYER_HITBOX;
+
+
+
+
 
         function preload () {
 
@@ -20,47 +56,25 @@
             // Scene assets          
             game.load.image('candyshop', 'images/scene/candyshop.png');
             game.load.image('candyshopwall', 'images/scene/candyshopwall.png');
+
             game.load.spritesheet('player1', 'images/characters/tremel.png', 32, 48);
+            game.load.spritesheet('player2', 'images/characters/xmasgirl1.png', 32, 48);
 
             // Trigger assets
             game.load.image('empty', 'images/empty.png');
-            game.load.image('trigger.help', 'images/triggers/help.png');
+            game.load.image('trigger.help', 'images/triggers/letter.png');
             game.load.image('trigger.trigger1', 'images/triggers/trigger1.png');
             game.load.image('wall.top', 'images/triggers/wall_top.png');
             game.load.image('wall.left', 'images/triggers/wall_left.png');
             game.load.image('wall.right', 'images/triggers/wall_right.png');
             game.load.image('wall.bottom', 'images/triggers/wall_bottom.png');
 
+            game.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
+
         }
 
-        var map;
-        var layer;
-        var trigger_objects;
-        var wall_layer;
-        var object_layer;
-        var object2_layer;
-        var player1;
-        var groups;
-        var trigger_objects;
-        var speed = 100;
 
-        var triggers = {};
-        triggers['hitQuestion'] = function (body1, body2) {
-            //console.debug("hitQuestion");
-            //console.debug(body2);
-            return true;
-        }
 
-        triggers['openWall'] = function (target) {
-            //obj1.velocity.x = 0;
-            //obj1.velocity.y = 0;
-            for(i in trigger_objects.children) {
-                if(trigger_objects.children[i].groupID == target) {
-                    trigger_objects.children[i].kill();
-                }
-            }
-            return true;
-        }
 
         function findObjectsByType(type, map, layer) {
             var results = [];
@@ -101,10 +115,6 @@
             map.setCollisionBetween(100, 199, true, 'object');
 
 
-            //map.setTileIndexCallback(12, hitQuestion, this, 'object');
-            //map.setTileIndexCallback([125, 127, 131], hiddenWallHandler, this, 'object');
-
-
             trigger_objects = game.add.group();
             trigger_objects.enableBody = true;
             results = findObjectsByType('help', map, 'object2');
@@ -122,36 +132,66 @@
                 createFromTiledObject(element, trigger_objects)
             }, this);              
 
-
-
-            //map.setTileLocationCallback(0,0,10,10, hitQuestion, this, 'floor');
-
-
-            /**
-             * Player initialization
-             */
-             
+            results = findObjectsByType('trigger.object', map, 'object2');
+            results.forEach(function(element) {
+                createFromTiledObject(element, trigger_objects)
+            }, this);
 
 
             /**
              * Add player
              */
-            player1 = game.add.sprite(50, 100, 'player1');
+            PLAYERS[0] = initPlayer(1, "player1", 50, 100);
+            PLAYER_HITBOXES[0] = initPlayerHitBox();
 
-            player1.animations.add('walk_down', [0,1,2,3], true);
-            player1.animations.add('walk_left', [4,5,6,7], true);
-            player1.animations.add('walk_right', [8,9,10,11], true);
-            player1.animations.add('walk_up', [12,13,14,15], true);            
+            PLAYERS[1] = initPlayer(2, "player2", 200, 100);
+            PLAYER_HITBOXES[1] = initPlayerHitBox();
 
+            CURRENT_PLAYER_INDEX = 0;
+            CURRENT_PLAYER = PLAYERS[CURRENT_PLAYER_INDEX];
+            CURRENT_PLAYER_HITBOX = PLAYER_HITBOXES[CURRENT_PLAYER_INDEX];
+
+            // Keyboard init
+            this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+            this.tabKey = game.input.keyboard.addKey(Phaser.Keyboard.TAB);
+            game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.TAB]);
 
             /**
              * Remaining initialization
              */
-            game.camera.follow(player1);
+             //game.physics.enable(player1, Phaser.Physics.ARCADE);
+            game.camera.follow(CURRENT_PLAYER, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
+
+            UI = new _ui(game);
+            UI.init();
+
+        }
+
+        function initPlayer(player_num, player_sprite, x, y) {
+            player = game.add.sprite(x, y, player_sprite);
+            player.name = "player" + player_num;
+            player.animations.add('walk_down', [0,1,2,3], true);
+            player.animations.add('walk_left', [4,5,6,7], true);
+            player.animations.add('walk_right', [8,9,10,11], true);
+            player.animations.add('walk_up', [12,13,14,15], true);
+
+            game.physics.enable(player, Phaser.Physics.ARCADE);
 
 
-            game.physics.enable(player1, Phaser.Physics.ARCADE);
+            return player;
+        }
 
+        function initPlayerHitBox() {
+            player_hitbox = game.add.sprite(5, 100, 'empty');
+            player_hitbox.visible = false;
+            game.physics.enable(player_hitbox, Phaser.Physics.ARCADE);
+            return player_hitbox;
+        }
+
+        function setPlayer(index) {
+            CURRENT_PLAYER_INDEX = index;
+            CURRENT_PLAYER = PLAYERS[CURRENT_PLAYER_INDEX];
+            CURRENT_PLAYER_HITBOX = PLAYER_HITBOXES[CURRENT_PLAYER_INDEX];
         }
 
         function object_collide_callback(obj1, obj2) {
@@ -165,14 +205,28 @@
         }
 
 
-        function update() {
-            player1.body.velocity.x = 0;
-            player1.body.velocity.y = 0;
-            
-            game.physics.arcade.collide(player1, wall_layer);
-            game.physics.arcade.collide(player1, object_layer, object_collide_callback);
 
-            game.physics.arcade.collide(player1, trigger_objects, function (obj1, obj2) {
+        function update() {
+            if(this.tabKey.justUp) {
+                if(CURRENT_PLAYER_INDEX == 0) {
+                    setPlayer(1);
+                } else {
+                    setPlayer(0);
+                }
+            }
+
+            if(UI.isSticky == false) {
+                UI.hide();
+            }
+
+            CURRENT_PLAYER.body.velocity.x = 0;
+            CURRENT_PLAYER.body.velocity.y = 0;
+
+            game.physics.arcade.collide(CURRENT_PLAYER, wall_layer);
+            game.physics.arcade.collide(PLAYERS[0], PLAYERS[1]);
+            game.physics.arcade.collide(CURRENT_PLAYER, object_layer, object_collide_callback);
+
+            game.physics.arcade.collide(CURRENT_PLAYER, trigger_objects, function (obj1, obj2) {
                 //console.debug(obj2)
                 return false;
             },
@@ -183,34 +237,71 @@
                 return false;
             });
 
-            game.physics.arcade.overlap(player1, trigger_objects, function (obj1, obj2) {
-                if(obj2.hasOwnProperty('condition')) {
-                    if(obj2.hasOwnProperty('callback')) {
-                        triggers[obj2.callback]();
+            var overlapping = game.physics.arcade.overlap(CURRENT_PLAYER, trigger_objects, function (obj1, obj2) {
+                //console.debug(obj2);
+                if("condition" in obj2) {
+                    if("callback" in obj2) {
+                        //console.debug("Calling " + obj2.callback);
+                        if(obj2.callback in triggers) {
+                            triggers[obj2.callback](obj1, obj2);
+                        }
                     }
                 } else if(obj2.hasOwnProperty('callback')) {
-                    triggers[obj2.callback](obj2.target);
+                    //console.debug("Calling " + obj2.callback);
+                    triggers[obj2.callback](obj1, obj2);
                 }
                 return false;
             });
 
+
             if(game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                player1.body.velocity.x -= speed;
-                player1.animations.play('walk_left', 15, true);
+                CURRENT_PLAYER.body.velocity.x -= speed;
+                CURRENT_PLAYER.animations.play('walk_left', 15, true);
+                CURRENT_PLAYER.body.facing = Phaser.LEFT;
+                UI.clearSticky();
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-                player1.body.velocity.x += speed;
-                player1.animations.play('walk_right', 15, true);
+                CURRENT_PLAYER.body.velocity.x += speed;
+                CURRENT_PLAYER.animations.play('walk_right', 15, true);
+                CURRENT_PLAYER.body.facing = Phaser.RIGHT;
+                UI.clearSticky();
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-                player1.body.velocity.y -= speed;
-                player1.animations.play('walk_up', 15, true);
+                CURRENT_PLAYER.body.velocity.y -= speed;
+                CURRENT_PLAYER.animations.play('walk_up', 15, true);
+                CURRENT_PLAYER.body.facing = Phaser.UP;
+                UI.clearSticky();
             } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-                player1.body.velocity.y += speed;
-                player1.animations.play('walk_down', 15, true);
+                CURRENT_PLAYER.body.velocity.y += speed;
+                CURRENT_PLAYER.animations.play('walk_down', 15, true);
+                CURRENT_PLAYER.body.facing = Phaser.DOWN;
+                UI.clearSticky();
             } else {
-                player1.animations.stop(null, 0);
+                CURRENT_PLAYER.animations.stop(null, 0);
             }
 
-            //getTileAbove/Below/Left/Right
+            if(this.spaceKey.justUp) {
+                UI.clearSticky();
+                if(CURRENT_PLAYER.body.facing == Phaser.RIGHT) {
+                    CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x + (CURRENT_PLAYER.body.width / 2);
+                    CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y;
+                } else if(CURRENT_PLAYER.body.facing == Phaser.LEFT) {
+                    CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x - (CURRENT_PLAYER_HITBOX.body.width);
+                    CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y;
+                } else if(CURRENT_PLAYER.body.facing == Phaser.DOWN) {
+                    CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x;
+                    CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y + (CURRENT_PLAYER.body.height);
+                } else if(CURRENT_PLAYER.body.facing == Phaser.UP) {
+                    CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x;
+                    CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y - (CURRENT_PLAYER_HITBOX.body.height / 2);
+                }
+
+                game.physics.arcade.overlap(CURRENT_PLAYER_HITBOX, trigger_objects, function (obj1, obj2) {
+                    if("condition" in obj2 && obj2.condition == "FACING_TOUCH") {
+                        if("callback" in obj2 && obj2.callback in triggers) {
+                            triggers[obj2.callback]();
+                        }
+                    }
+                });
+            }
         }
 
         function render() {
