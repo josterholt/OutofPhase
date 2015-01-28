@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="39">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="49">
  <tileset firstgid="1" name="candyshop" tilewidth="32" tileheight="32">
   <image source="../images/scene/candyshop.png" trans="ffffff" width="256" height="480"/>
  </tileset>
@@ -46,6 +46,12 @@
    </properties>
   </tile>
  </tileset>
+ <tileset firstgid="133" name="wedding" tilewidth="32" tileheight="32">
+  <image source="../images/scene/wedding.png" trans="282828" width="256" height="1248"/>
+ </tileset>
+ <tileset firstgid="445" name="collide" tilewidth="32" tileheight="32">
+  <image source="../images/map/collide.png" width="64" height="32"/>
+ </tileset>
  <layer name="floor" width="100" height="75">
   <data encoding="base64" compression="zlib">
    eJzt1TEKgEAMAMEr/P+brayNHMoiM5AuVRbujrXWcTNrsHPtsWd6Zz2+oUeLHi16tOjRokeLHi16ND25rQ7v06PBe9WiR4seLZM7T4d9erTo0eL/aNGjRQ8AAAAAAAAAAAAAAAAAAAAAAAAAAAD+6ATszQVd
@@ -57,6 +63,11 @@
   </properties>
   <data encoding="base64" compression="zlib">
    eJzt2EEKwjAUBNAcvCoaD66gQgmhTW0Ws3gP/qadVScQ+pdSymVjruVjGcxxzm3n/f1gjnP0kUUfWfSRRR9Z9JFFH1ke76md5/U7zybXZtscc6zP/95ZP5LlP/rI8NuDtLb2Jb2sfckc7vMsI9+5DuY4b+87j9LHHPrIMtJH7/+kpY853OdZ9JFlvQfpTW9fspUDAAAAAAAAAAAAAAAAAAAAAAAAAACABC+A8zqK
+  </data>
+ </layer>
+ <layer name="collide" width="100" height="75">
+  <data encoding="base64" compression="zlib">
+   eJzt1zsKwCAURUGz/z1lbSFFOjEf4XElM2Ajr/KAYmv39u3B0Is55uiRRY8semTRI4seWfTIokcWPeqcZ9g7x2u/t0azzNFjPe6rLHpk0WNNemTRI4seNbwfWfTIoked0T/8ywIAAAAAAAAAAAAAAAAAAAAAAAAAAPirAzaiOXQ=
   </data>
  </layer>
  <layer name="object" width="100" height="75">
@@ -122,21 +133,7 @@
     <property name="type" value="trigger"/>
    </properties>
   </object>
-  <object id="20" name="help1" type="trigger.help" gid="12" x="112" y="80">
-   <properties>
-    <property name="callback" value="message1"/>
-    <property name="sprite" value="trigger.help"/>
-    <property name="type" value="help"/>
-   </properties>
-  </object>
-  <object id="23" name="help2" type="trigger.help" gid="12" x="96" y="512">
-   <properties>
-    <property name="callback" value="message2"/>
-    <property name="sprite" value="trigger.help"/>
-    <property name="type" value="help"/>
-   </properties>
-  </object>
-  <object id="24" name="help3" type="trigger.help" gid="12" x="447" y="129">
+  <object id="24" name="help3" type="trigger.help" gid="12" x="447" y="65">
    <properties>
     <property name="sprite" value="trigger.help"/>
     <property name="type" value="help"/>
@@ -153,30 +150,12 @@
     <property name="type" value="trigger"/>
    </properties>
   </object>
-  <object id="26" name="object1" type="trigger.object" gid="129" x="136" y="175">
-   <properties>
-    <property name="callback" value="voodoo"/>
-    <property name="condition" value="FACING_TOUCH"/>
-    <property name="solid" value="true"/>
-    <property name="sprite" value="wall.right"/>
-    <property name="sticky" value="true"/>
-    <property name="type" value="trigger.object"/>
-   </properties>
-  </object>
   <object id="29" name="wall2" type="wall" gid="127" x="320" y="481">
    <properties>
     <property name="group" value="wall2"/>
     <property name="solid" value="true"/>
     <property name="sprite" value="wall.left"/>
     <property name="type" value="wall"/>
-   </properties>
-  </object>
-  <object id="30" name="trigger2" type="trigger" gid="131" x="96" y="640">
-   <properties>
-    <property name="action" value="KILL"/>
-    <property name="sprite" value="wall.bottom"/>
-    <property name="target" value="wall2"/>
-    <property name="type" value="trigger"/>
    </properties>
   </object>
   <object id="33" name="wall2" type="wall" gid="127" x="320" y="514">
@@ -226,6 +205,72 @@
   <object id="38" name="room3" type="section" x="324" y="360" width="280" height="262">
    <properties>
     <property name="type" value="section"/>
+   </properties>
+  </object>
+  <object id="39" name="flowers2" gid="147" x="15" y="407">
+   <properties>
+    <property name="callback" value="flowerCount"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="40" name="flowers2" gid="147" x="234" y="405">
+   <properties>
+    <property name="callback" value="flowerCount"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="41" name="flowers2" gid="147" x="19" y="617">
+   <properties>
+    <property name="callback" value="flowerCount"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="42" name="flowers2" gid="147" x="239" y="620">
+   <properties>
+    <property name="callback" value="flowerCount"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="target" value="wall2"/>
+    <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="43" name="flowers1" gid="147" x="26" y="57">
+   <properties>
+    <property name="callback" value="flowerCount"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="44" name="flowers1" gid="147" x="230" y="57">
+   <properties>
+    <property name="callback" value="flowerCount"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="46" name="flowers3" gid="147" x="448" y="513">
+   <properties>
+    <property name="callback" value="flowerCheck"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="47" name="flowers4" gid="147" x="450" y="238">
+   <properties>
+    <property name="callback" value="room4SwapTrigger"/>
+    <property name="condition" value="PLAYER1"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.flowers1"/>
+    <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
  </objectgroup>

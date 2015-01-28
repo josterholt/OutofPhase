@@ -12,7 +12,7 @@ _ui = function (game) {
         graphics = this.game.add.graphics(0,0);
         this.graphics = graphics;
         this.graphics.visible = false;
-        this.graphics.beginFill(0x333333);
+        this.graphics.beginFill(0x000000);
         this.graphics.drawRect(0, (game.stage.height - this.dialogue_height), game.stage.width, this.dialogue_height);
         this.graphics.endFill();
 
@@ -21,6 +21,7 @@ _ui = function (game) {
 
         this.message.font = FONTS[this.font_indx];
         this.message.fontSize = 28;
+        this.message.fill = "white";
     };
 
     this.setText = function (text) {
@@ -49,4 +50,8 @@ _ui = function (game) {
     this.clearSticky = function () {
         this.isSticky = false;
     }
+}
+
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
 }

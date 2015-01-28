@@ -39,8 +39,6 @@ triggers['openWall2'] = function (obj1, obj2) {
         }
     }
 
-    console.debug("testing");
-
     var overlap1 = game.physics.arcade.intersects(PLAYERS[0].body, t[1].body);
     var overlap2 = game.physics.arcade.intersects(PLAYERS[1].body, t[0].body)
 
@@ -48,6 +46,57 @@ triggers['openWall2'] = function (obj1, obj2) {
         triggers['kill'](obj2.target);
     }
     return true;
+}
+
+var flower_dialogue1 = [
+    "Achoo!",
+    "These look nice. I guess.",
+    "I think I see a bee...",
+    "I know someone who would like these."
+];
+var flower_dialogue2 = [
+    "I love flowers!",
+    "These smell wonderful!",
+    "*smiles*",
+    "Hehehe"
+];
+
+triggers['flowerCheck'] = function(obj1, obj2) {
+    if(obj1.group == "PLAYER1") {
+        var text_indx = getRandomInt(0,3);
+        UI.show(flower_dialogue1[text_indx]);
+        UI.isSticky = true;
+    } else {
+        UI.show("Oh! These are pretty!");
+        UI.isSticky = true;
+    }
+}
+
+var flower_count = 0;
+var ALL_THE_FLOWERS = 6;
+var flowers_smelt = [];
+
+
+triggers['flowerCount'] = function(obj1, obj2) {
+    if(obj1.group == "PLAYER1") {
+        triggers['flowerCheck'](obj1, obj2);
+    } else {
+        var flower_key = obj2.x + ":" + obj2.y;
+        if(flowers_smelt.indexOf(flower_key) != -1) {
+            UI.show("Mmmmm");
+            UI.isSticky = true;
+        } else {
+            flower_count++;
+            flowers_smelt.push(flower_key)
+            if (flower_count != ALL_THE_FLOWERS) {
+                var text_indx = getRandomInt(0,3);
+                UI.show(flower_dialogue2[text_indx]);
+                UI.isSticky = true;
+            } else {
+                triggers['kill']("wall2");
+            }
+        }
+    }
 }
 
 
