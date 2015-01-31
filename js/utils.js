@@ -55,3 +55,31 @@ _ui = function (game) {
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
+
+function updateOtherPlayer(player_indx) {
+    if(player_indx in SERVER_STATE.data.players && SERVER_STATE.status == "FRESH") {
+        PLAYERS[player_indx].x = SERVER_STATE.data.players[player_indx].position[0];
+        PLAYERS[player_indx].y = SERVER_STATE.data.players[player_indx].position[1];
+        PLAYERS[player_indx].body.velocity.x = SERVER_STATE.data.players[player_indx].velocity[0];
+        PLAYERS[player_indx].body.velocity.y = SERVER_STATE.data.players[player_indx].velocity[1];
+        PLAYERS[player_indx].body.facing = SERVER_STATE.data.players[player_indx].facing;
+
+        var is_moving = !(PLAYERS[player_indx].body.velocity.x == 0 && PLAYERS[player_indx].body.velocity.y == 0);
+        if(is_moving) {
+            if(PLAYERS[player_indx].body.facing == Phaser.LEFT) {
+                PLAYERS[player_indx].animations.play('walk_left', 15, true);
+            } else if(PLAYERS[player_indx].body.facing == Phaser.RIGHT) {
+                PLAYERS[player_indx].animations.play('walk_right', 15, true);
+            } else if(PLAYERS[player_indx].body.facing == Phaser.UP) {
+                PLAYERS[player_indx].animations.play('walk_up', 15, true);
+            } else if(PLAYERS[player_indx].body.facing == Phaser.DOWN) {
+                PLAYERS[player_indx].animations.play('walk_down', 15, true);
+            }
+        }
+
+        if(!is_moving) {
+            PLAYERS[player_indx].animations.stop(null, 0);
+        }
+        SERVER_STATE.status = "OLD";
+    }
+}

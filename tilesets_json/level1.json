@@ -495,22 +495,55 @@
                  "width":0,
                  "x":450,
                  "y":238
+                }, 
+                {
+                 "gid":73,
+                 "height":0,
+                 "id":49,
+                 "name":"barrel",
+                 "properties":
+                    {
+                     "group":"barrel1",
+                     "pushable":"true",
+                     "solid":"true",
+                     "sprite":"trigger.barrel",
+                     "type":"trigger.object"
+                    },
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":189,
+                 "y":510
+                }, 
+                {
+                 "gid":11,
+                 "height":0,
+                 "id":52,
+                 "name":"trigger1",
+                 "properties":
+                    {
+                     "callback":"pressurePlate",
+                     "condition":"barrel1",
+                     "sprite":"trigger.trigger1",
+                     "target":"wall2",
+                     "type":"trigger"
+                    },
+                 "rotation":0,
+                 "type":"trigger",
+                 "visible":true,
+                 "width":0,
+                 "x":96,
+                 "y":512
                 }],
          "opacity":1,
-         "properties":
-            {
-             "callback":"voodoo",
-             "condition":"FACING_TOUCH",
-             "sprite":"wall.right",
-             "type":"trigger.object"
-            },
          "type":"objectgroup",
          "visible":true,
          "width":0,
          "x":0,
          "y":0
         }],
- "nextobjectid":49,
+ "nextobjectid":53,
  "orientation":"orthogonal",
  "properties":
     {
@@ -532,6 +565,15 @@
             },
          "spacing":0,
          "tileheight":32,
+         "tileproperties":
+            {
+             "72":
+                {
+                 "pushable":"true",
+                 "solid":"true",
+                 "sprite":"barrel"
+                }
+            },
          "tilewidth":32,
          "transparentcolor":"#ffffff"
         }, 

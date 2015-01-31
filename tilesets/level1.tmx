@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="49">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="53">
  <tileset firstgid="1" name="candyshop" tilewidth="32" tileheight="32">
   <image source="../images/scene/candyshop.png" trans="ffffff" width="256" height="480"/>
+  <tile id="72">
+   <properties>
+    <property name="pushable" value="true"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="barrel"/>
+   </properties>
+  </tile>
  </tileset>
  <tileset firstgid="121" name="candyshopwall" tilewidth="32" tileheight="32">
   <image source="../images/scene/candyshopwall.png" trans="282828" width="96" height="128"/>
@@ -76,12 +83,6 @@
   </data>
  </layer>
  <objectgroup name="triggers">
-  <properties>
-   <property name="callback" value="voodoo"/>
-   <property name="condition" value="FACING_TOUCH"/>
-   <property name="sprite" value="wall.right"/>
-   <property name="type" value="trigger.object"/>
-  </properties>
   <object id="13" name="wall1" type="wall" gid="125" x="64" y="384">
    <properties>
     <property name="group" value="wall1"/>
@@ -271,6 +272,24 @@
     <property name="solid" value="true"/>
     <property name="sprite" value="trigger.flowers1"/>
     <property name="type" value="trigger.flowers"/>
+   </properties>
+  </object>
+  <object id="49" name="barrel" gid="73" x="189" y="510">
+   <properties>
+    <property name="group" value="barrel1"/>
+    <property name="pushable" value="true"/>
+    <property name="solid" value="true"/>
+    <property name="sprite" value="trigger.barrel"/>
+    <property name="type" value="trigger.object"/>
+   </properties>
+  </object>
+  <object id="52" name="trigger1" type="trigger" gid="11" x="96" y="512">
+   <properties>
+    <property name="callback" value="pressurePlate"/>
+    <property name="condition" value="barrel1"/>
+    <property name="sprite" value="trigger.trigger1"/>
+    <property name="target" value="wall2"/>
+    <property name="type" value="trigger"/>
    </properties>
   </object>
  </objectgroup>

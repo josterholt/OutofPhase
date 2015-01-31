@@ -3,6 +3,97 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
+    <script src="js/phaser.min.js"></script>
+    <script src="js/triggers.js"></script>
+    <script src="js/utils.js"></script>
+    <script type="text/javascript" src="js/game.js"></script>
+    <script>
+    var PLAYER_INDX;
+    var PLAYER_NUM;
+    var isConnected = false;
+    var SERVER_STATE = {"data": { "players": [] }};
+    var ws;
+
+    var pieces = document.cookie.split(";");
+    for(i in pieces) {
+        if(pieces[i].indexOf("player") != -1) {
+            PLAYER_NUM = pieces[i].split("=")[1];
+            PLAYER_INDX = PLAYER_NUM - 1;
+        }
+    }
+
+    if(PLAYER_INDX == undefined) {
+        PLAYER_INDX = 1;
+        PLAYER_NUM = 2;
+        CURRENT_PLAYER_INDEX = PLAYER_INDX;
+    }
+
+    function updatePosition(x, y) {
+        ws.send(JSON.stringify({"action": "updatePlayerPosition", "x": x, "y": y}))
+    }
+
+    var com_update = function () {
+        if(isConnected && CURRENT_PLAYER) {
+            var request = JSON.stringify({
+                "action": "updatePlayer",
+                "player": {
+                    "position": [CURRENT_PLAYER.x, CURRENT_PLAYER.y],
+                    "velocity": [CURRENT_PLAYER.body.velocity.x, CURRENT_PLAYER.body.velocity.y],
+                    "facing": CURRENT_PLAYER.body.facing
+                },
+
+            });
+
+            ws.send(request);
+        }
+    }
+
+    window.onload = function() {
+        ws = new WebSocket('ws://ubuntu:8888/websocket', ['soap', 'xmpp', 'binary']);
+
+        ws.onopen = function () {
+            if(PLAYER_NUM == 1) {
+                console.debug("Create game...");
+                request = JSON.stringify({ "action": "createGame", "player": PLAYER_NUM  })
+            } else {
+                request = JSON.stringify({ "action": "joinGame", "player": PLAYER_NUM  })
+            }
+            isConnected = true;
+            ws.send(request)
+        }
+
+        ws.onerror = function (error) {
+            console.debug('Websocket Error ' + error);
+        }
+
+        ws.onmessage = function (e) {
+            if("data" in e) {
+                var response = JSON.parse(e.data);
+                var action = null;
+                if("data" in response && "action" in response.data && response.data.action ) {
+                    action = response.data.action;
+                }
+
+                if(action == "INIT") {
+                    SERVER_STATE.status = "FRESH";
+                    SERVER_STATE.data.players[0] = response.data.players[0];
+                    SERVER_STATE.data.players[1] = response.data.players[1];
+                    startGame();
+                    window.setInterval(com_update, 100);
+                } else if(action == "UPDATE") {
+                    if ("data" in response && response.data != null) {
+                        SERVER_STATE.status = "FRESH";
+                        SERVER_STATE.data.players[0] = response.data.players[0];
+                        SERVER_STATE.data.players[1] = response.data.players[1];
+                    }
+                } else {
+                    console.debug("Bad message, discarding")
+                }
+            }
+        }
+    }
+
+    </script>
 </head>
 <body>
 

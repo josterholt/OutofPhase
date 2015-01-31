@@ -8,9 +8,10 @@ from tornado import websocket
 r = redis.StrictRedis(host='localhost', port=6379, db=10)
 session_id = 1234
 
+
 class GameState:
     gameID = None
-    players = [{"x": 0, "y": 0}, {"x": 0, "y": 0 }]
+    players = [{"position": [0,0], "velocity": [0,0], "facing": 0}, {"position": [450, 450], "velocity": [0,0], "facing": 0}]
 
     def __init__(self):
         print("Setting game id")
@@ -19,16 +20,19 @@ class GameState:
     def setPlayer(self, index, player):
         self.players[index] = player
 
-    def updatePosition(self, indx, x, y):
-        self.players[indx]['x'] = x;
-        self.players[indx]['y'] = y;
+    def updatePosition(self, indx, player):
+        self.players[indx]['position'] = player.get("position")
+        self.players[indx]['velocity'] = player.get("velocity")
+        self.players[indx]['facing'] = player.get("facing")
 
     def getPlayerPositions(self):
         return self.players
 
+
 class EventMgr:
     sessionid = None
     game = None
+    handler = None
 
     def __init__(self, handler, game):
         self.handler = handler
@@ -43,28 +47,27 @@ class EventMgr:
         unique_id = uuid.uuid4()
         game_id = "game:" + str(unique_id)
 
-        if self.get_cookie("player") == 1:
-            self.gs.setPlayer(0, self)
-        elif self.get_cookie("player") == 2:
-            self.gs.setPlayer(1, self)
+        print("Create game player: " + str(self.handler.get_cookie("player")))
+
+        if self.handler.get_cookie("player") == "1":
+            #self.game.setPlayer(0, self)
+            pass
+        elif self.handler.get_cookie("player") == "2":
+            #self.game.setPlayer(1, self)
+            pass
         else:
             print("Invalid player")
 
 
         # Add to users personal game list
         #r.rpush("games:" + str(self.sessionid), game_id)
-
-        # Initialize in-memory game variables
-        state = {
-            "x": 0,
-            "y": 0,
-            "velocity": {
-                "x": 0,
-                "y": 0
-            }
-        }
         #r.hset(game_id, "player1", state)
         #r.hset(game_id, "player2", {})
+
+        return { "action": "INIT", "players": self.game.getPlayerPositions() }
+
+    def joinGame(self, request):
+        return { "action": "INIT", "players": self.game.getPlayerPositions() }
 
     # Retrieve game state of all players
     def getGameStates(self, request):
@@ -75,28 +78,20 @@ class EventMgr:
     # Retrieve game state of a player
     def getGameState(self, request):
         print("Sync users from game")
-        game_state = {
-            "player1": {
-                "x": 0,
-                "y": 0
-            },
-            "player2": {
-                "x": 0,
-                "y": 0
-            }
-        }
+        game_state = { }
         return(game_state)
 
 
     def updatePlayer(self, request):
-        print(self.handler.get_cookie("player"))
-        if(self.handler.get_cookie("player") == 1):
+        if(self.handler.get_cookie("player") == "1"):
             player_indx = 0
         else:
             player_indx = 1
 
-        self.game.updatePosition(player_indx, request.get("x"), request.get("y"))
-        return self.game.getPlayerPositions()
+        print("Updating player: " + str(player_indx))
+        self.game.updatePosition(player_indx, request.get("player"))
+
+        return {"action": "UPDATE", "players": self.game.getPlayerPositions() }
 
     # Sync all object states
     def syncAllObjects(self, request):
@@ -135,8 +130,6 @@ class GameClient(websocket.WebSocketHandler):
             self.set_cookie("game_session", self.id)
 
         self.clients.append(self)
-        print("Initial cookie")
-        print(self.get_cookie("player"))
 
 
         self.em = EventMgr(self, self.gs)
@@ -156,6 +149,7 @@ class GameClient(websocket.WebSocketHandler):
                 response['data'] = getattr(self.em, request.get("action"))(request)
 
             response['status'] = 'OK'
+            print(response)
             self.write_message(json.dumps(response))
         except ValueError as e:
             self.write_message(json.dumps({"error": "Bad Value"}))

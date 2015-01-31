@@ -1,3 +1,17 @@
+function runTrigger(obj1, obj2) {
+    if("callback" in obj2) {
+        //console.debug("Callback: " + obj2.callback);
+        if(obj2.callback in triggers) {
+            triggers[obj2.callback](obj1, obj2);
+        }
+    } else if("action" in obj2 && "target" in obj2 ) {
+        //console.debug("Action: " + obj2.action);
+        if(obj2.action == "KILL") {
+            triggers["kill"](obj2.target);
+        }
+    }
+}
+
 var triggers = {};
 
 triggers['message1'] = function (player, object) {
@@ -99,9 +113,8 @@ triggers['flowerCount'] = function(obj1, obj2) {
     }
 }
 
-
 triggers['kill'] = function(target_group) {
-    console.debug("Killing " + target_group);
+    //console.debug("Killing " + target_group);
     for(i in trigger_objects.children) {
         if(trigger_objects.children[i].group == target_group) {
             trigger_objects.children[i].kill();
@@ -109,11 +122,68 @@ triggers['kill'] = function(target_group) {
     }
 }
 
+triggers['hide'] = function(target_group) {
+    //console.debug("Hiding " + target_group);
+    for(i in trigger_objects.children) {
+        if(trigger_objects.children[i].group == target_group) {
+            trigger_objects.children[i].visible = 0;
+        }
+    }
+}
+
+triggers['show'] = function(target_group) {
+    //console.debug("Showing " + target_group);
+    for(i in trigger_objects.children) {
+        if(trigger_objects.children[i].group == target_group) {
+            trigger_objects.children[i].visible = 1;
+        }
+    }
+}
+
+
+
 triggers['voodoo'] = function (target) {
     if(UI.active == false) {
         UI.show("This is a sticky prompt");
         UI.isSticky = true;
     } else {
         UI.isSticky = false;
+    }
+}
+
+/**
+ * Release triggers hold triggers that have a release event.
+ * Need to hold the trigger, and any other objects that are being
+ * watched.
+ * {
+ *     source: Trigger Object,
+ *     watch: [Object]
+ *     callback: function
+ * }
+ */
+var RELEASE_TRIGGERS = [];
+triggers['pressurePlate'] = function (obj1, obj2) {
+    if(obj2.condition == obj1.group) {
+        triggers["hide"](obj2.target);
+
+        if(!(obj2.id in RELEASE_TRIGGERS)) {
+            RELEASE_TRIGGERS[obj2.id] = {
+                "source": obj2,
+                "target": obj1,
+                "callback": function (obj1) {
+                    triggers["show"](obj1);
+                }
+            }
+        }
+    }
+}
+
+function updateReleaseTriggers() {
+    for(var i in RELEASE_TRIGGERS) {
+        var trigger = RELEASE_TRIGGERS[i];
+        if(!game.physics.arcade.intersects(trigger.source.body, trigger.target.body)) {
+            trigger.callback(trigger.source.target);
+            RELEASE_TRIGGERS.splice(i, 1);
+        }
     }
 }
