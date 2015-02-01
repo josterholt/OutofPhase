@@ -126,7 +126,9 @@ triggers['hide'] = function(target_group) {
     //console.debug("Hiding " + target_group);
     for(i in trigger_objects.children) {
         if(trigger_objects.children[i].group == target_group) {
-            trigger_objects.children[i].visible = 0;
+            trigger_objects.children[i].visible = false;
+            trigger_objects.children[i].solid = false;
+            //trigger_objects.children[i].enable = false;
         }
     }
 }
@@ -135,7 +137,9 @@ triggers['show'] = function(target_group) {
     //console.debug("Showing " + target_group);
     for(i in trigger_objects.children) {
         if(trigger_objects.children[i].group == target_group) {
-            trigger_objects.children[i].visible = 1;
+            trigger_objects.children[i].visible = true;
+            trigger_objects.children[i].solid = true;
+            //trigger_objects.children[i].enable = true;
         }
     }
 }

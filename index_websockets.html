@@ -54,9 +54,19 @@
         ws.onopen = function () {
             if(PLAYER_NUM == 1) {
                 console.debug("Create game...");
-                request = JSON.stringify({ "action": "createGame", "player": PLAYER_NUM  })
+                if(localStorage['game_token'] != null) {
+                    request = JSON.stringify({ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  })
+                } else {
+                    request = JSON.stringify({ "action": "createGame" })
+                }
             } else {
-                request = JSON.stringify({ "action": "joinGame", "player": PLAYER_NUM  })
+                if(localStorage['game_token'] == null) {
+                    localStorage['game_token']  = prompt("Enter token")
+                }
+
+                if(localStorage['game_token'] != null) {
+                    request = JSON.stringify({ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  })
+                }
             }
             isConnected = true;
             ws.send(request)
@@ -68,26 +78,44 @@
 
         ws.onmessage = function (e) {
             if("data" in e) {
+
                 var response = JSON.parse(e.data);
                 var action = null;
-                if("data" in response && "action" in response.data && response.data.action ) {
-                    action = response.data.action;
-                }
+                if(response.status != "OK") {
+                    console.debug(response)
+                    if(response.message == "Token is invalid" && PLAYER_NUM == 1) {
+                        request = JSON.stringify({ "action": "createGame" })
+                        ws.send(request)
+                    }
+                } else {
+                    if("gameToken" in response.data) {
+                        localStorage['game_token'] = response.data.gameToken;
+                        prompt("Game Token", response.data.gameToken)
+                    }
 
-                if(action == "INIT") {
-                    SERVER_STATE.status = "FRESH";
-                    SERVER_STATE.data.players[0] = response.data.players[0];
-                    SERVER_STATE.data.players[1] = response.data.players[1];
-                    startGame();
-                    window.setInterval(com_update, 100);
-                } else if(action == "UPDATE") {
-                    if ("data" in response && response.data != null) {
+                    if("playerToken" in response.data) {
+                        localStorage['player_token'] = response.data.playerToken;
+                    }
+
+                    if("data" in response && response.data != null && "action" in response.data) {
+                        action = response.data.action;
+                    }
+
+                    if(action == "INIT") {
                         SERVER_STATE.status = "FRESH";
                         SERVER_STATE.data.players[0] = response.data.players[0];
                         SERVER_STATE.data.players[1] = response.data.players[1];
+                        startGame();
+                        window.setInterval(com_update, 100);
+                    } else if(action == "UPDATE") {
+                        if ("data" in response && response.data != null) {
+                            SERVER_STATE.status = "FRESH";
+                            SERVER_STATE.data.players[0] = response.data.players[0];
+                            SERVER_STATE.data.players[1] = response.data.players[1];
+                        }
+                    } else {
+                        console.debug("Bad message, discarding")
                     }
-                } else {
-                    console.debug("Bad message, discarding")
                 }
             }
         }

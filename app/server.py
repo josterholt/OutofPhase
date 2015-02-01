@@ -7,106 +7,74 @@ from tornado import websocket
 
 r = redis.StrictRedis(host='localhost', port=6379, db=10)
 session_id = 1234
+ACTIVE_GAMES = {}
+CONNECTION_MGR_LOOKUP = {}
 
+
+class EventMgr:
+    gamePlayer = None
+
+    def __init__(self, gamePlayer):
+        self.gamePlayer = gamePlayer
+
+    def updatePlayer(self, request):
+        self.gamePlayer.game.updatePosition(self.gamePlayer.playerIndex, request.get("player"))
+        return {"action": "UPDATE", "players": self.gamePlayer.game.getPlayerPositions() }
 
 class GameState:
+    token = ""
     gameID = None
-    players = [{"position": [0,0], "velocity": [0,0], "facing": 0}, {"position": [450, 450], "velocity": [0,0], "facing": 0}]
+    events = None
 
-    def __init__(self):
+    def __init__(self, game_token):
         print("Setting game id")
-        self.gameID = 1
+        if id is None:
+            self.token = str(uuid.uuid4())
+            self.gameID = str(self.token)
+        else:
+            self.token = game_token
+            self.gameID = str(game_token)
 
-    def setPlayer(self, index, player):
-        self.players[index] = player
+        self.players = [{"token": None, "position": [0,0], "velocity": [0,0], "facing": 0}, {"token": None, "position": [450, 450], "velocity": [0,0], "facing": 0}]
+
+    @staticmethod
+    def getGameByToken(token):
+        gameID = str(token)
+        if gameID not in ACTIVE_GAMES:
+            return None
+        else:
+            return ACTIVE_GAMES[gameID]
+
+
+    def getStateUpdates(self):
+        return {"action": "UPDATE", "players": self.getPlayerPositions() }
+
+    def getPlayerPositions(self):
+        return self.players
+
+    def getToken(self):
+        return self.token
 
     def updatePosition(self, indx, player):
         self.players[indx]['position'] = player.get("position")
         self.players[indx]['velocity'] = player.get("velocity")
         self.players[indx]['facing'] = player.get("facing")
 
-    def getPlayerPositions(self):
-        return self.players
 
 
-class EventMgr:
-    sessionid = None
-    game = None
-    handler = None
-
-    def __init__(self, handler, game):
-        self.handler = handler
-        self.sessionid = handler.id
+class GamePlayer:
+    def __init__(self, game, player_index, player_token):
         self.game = game
+        self.eventMgr = EventMgr(self)
+        self.playerIndex = player_index
+        self.token = player_token
 
-        print(self.game.gameID)
+        print("Player Index: " + str(self.playerIndex))
 
-    # Create game
-    def createGame(self, request):
-        # Add to game list
-        unique_id = uuid.uuid4()
-        game_id = "game:" + str(unique_id)
-
-        print("Create game player: " + str(self.handler.get_cookie("player")))
-
-        if self.handler.get_cookie("player") == "1":
-            #self.game.setPlayer(0, self)
-            pass
-        elif self.handler.get_cookie("player") == "2":
-            #self.game.setPlayer(1, self)
-            pass
-        else:
-            print("Invalid player")
+    def getToken(self):
+        return self.token
 
 
-        # Add to users personal game list
-        #r.rpush("games:" + str(self.sessionid), game_id)
-        #r.hset(game_id, "player1", state)
-        #r.hset(game_id, "player2", {})
-
-        return { "action": "INIT", "players": self.game.getPlayerPositions() }
-
-    def joinGame(self, request):
-        return { "action": "INIT", "players": self.game.getPlayerPositions() }
-
-    # Retrieve game state of all players
-    def getGameStates(self, request):
-        game_states = []
-        #Get game states
-        return(game_states)
-
-    # Retrieve game state of a player
-    def getGameState(self, request):
-        print("Sync users from game")
-        game_state = { }
-        return(game_state)
-
-
-    def updatePlayer(self, request):
-        if(self.handler.get_cookie("player") == "1"):
-            player_indx = 0
-        else:
-            player_indx = 1
-
-        print("Updating player: " + str(player_indx))
-        self.game.updatePosition(player_indx, request.get("player"))
-
-        return {"action": "UPDATE", "players": self.game.getPlayerPositions() }
-
-    # Sync all object states
-    def syncAllObjects(self, request):
-        print("Sending all objects from game")
-
-    # Sync objects in room
-    def syncObjectsInRoom(self, request):
-        print("Room: " + room)
-
-    # Send event trigger
-    def sendEvent(self, request):
-        print("Send event")
-
-    def default(self, request):
-        return({"error": "Unknown command"})
 
 
 # Add session to keep track of player
@@ -114,7 +82,9 @@ class EventMgr:
 class GameClient(websocket.WebSocketHandler):
     clients = []
     em = None
-    gs = GameState()
+    id = None
+    #game = None
+    #gamePlayer = None
 
     def check_origin(self, origin):
         return True
@@ -123,38 +93,115 @@ class GameClient(websocket.WebSocketHandler):
         return "binary"
 
     def open(self):
-        game_session = self.get_cookie("game_session")
-        if game_session is None:
-            self.id = uuid.uuid4()
-        else:
-            self.set_cookie("game_session", self.id)
-
+        self.game = None
+        self.gamePlayer = None
+        self.id = uuid.uuid4()
         self.clients.append(self)
-
-
-        self.em = EventMgr(self, self.gs)
         print("WebSocket opened")
+
+    def createGame(self, request):
+        if "gameID" in request:
+            print("Request has game ID")
+            self.game = ACTIVE_GAMES.get(request.get("gameID"))
+        else:
+            print("New game")
+            self.gamePlayer = None
+            self.game = GameState(uuid.uuid4())
+
+
+        ACTIVE_GAMES[self.game.gameID] = self.game
+        return self.game.getToken()
+
+    def joinGame(self, game_token, player_token):
+        print("Looking up game with token: " + str(game_token))
+        game = GameState.getGameByToken(game_token)
+
+        # Scenarios:
+        # - Completely fresh game
+        # - Continued game
+        player_index = None
+
+        if player_token is not None:
+            print(game.players[0])
+            if game.players[0].get("token") == player_token:
+                player_index = 0
+                self.gamePlayer = GamePlayer(game, 0, player_token)
+            elif game.players[1].get("token") == player_token:
+                player_index = 1
+                self.gamePlayer = GamePlayer(game, 1, player_token)
+
+        # No matching player token found, and second player slot is occupied
+        if player_index is None:
+            if game.players[0].get("token") is None:
+                print("First player joined")
+                # Game is fresh, generate new player token and assign as first player
+                player_token = str(uuid.uuid4())
+                game.players[0]['token'] = player_token
+                self.gamePlayer = GamePlayer(game, 0, player_token)
+            elif game.players[1].get("token") is None:
+                print("Second player joined")
+                player_token = str(uuid.uuid4())
+                game.players[1]['token'] = player_token
+                self.gamePlayer = GamePlayer(game, 1, player_token)
+            else:
+                return false
+
+        return game
+
+    def getGame(self):
+        return self.games[self.id]
 
     def on_message(self, message):
         response = {"status": None, "data": None}
-        print(message)
-
 
         try:
             request = json.loads(message)
-
-            if "action" not in request or request.get("action") not in dir(self.em):
-                response = self.em.default(request)
-            else:
-                response['data'] = getattr(self.em, request.get("action"))(request)
-
             response['status'] = 'OK'
-            print(response)
+
+            #print(request)
+
+            if "action" not in request:
+                response = self.em.default(request)
+            elif request.get("action") == "createGame":
+                print("Creating game")
+                game_token = self.createGame(request)
+                game = self.joinGame(game_token, None)
+                if not game:
+                    response['status'] = "ERROR"
+                    response['message'] = "Unable to create game"
+                else:
+                    response['data'] = {"action": "INIT", "players": game.getPlayerPositions(), "gameToken": str(game_token), "playerToken": self.gamePlayer.getToken() }
+            elif request.get("action") == "joinGame":
+                print("Join game")
+
+                # Does this game exist?
+                if "gameToken" not in request:
+                    response['status'] = 'ERROR'
+                    response['message'] = 'Token must be specified'
+                elif request.get("gameToken") not in ACTIVE_GAMES:
+                    response['status'] = 'ERROR'
+                    response['message'] = 'Token is invalid'
+                else:
+                    game = self.joinGame(request.get("gameToken"), request.get("playerToken"))
+
+                    if not game:
+                        response['status'] = 'ERROR'
+                        response['message'] = 'Unable to join game'
+                    else:
+                        response['data'] = {"action": "INIT", "players": game.getPlayerPositions(), "gameToken": str(game.getToken()), "playerToken": self.gamePlayer.getToken() }
+
+            elif self.gamePlayer is not None and request.get("action") in dir(self.gamePlayer.eventMgr):
+                response['data'] = getattr(self.gamePlayer.eventMgr, request.get("action"))(request)
+            else:
+                #print(dir(self.gamePlayer.eventMgr))
+                #print(request.get("action"))
+                response['status'] = 'ERROR'
+                response['data'] = 'INVALID STATE'
+
+            #print(response)
             self.write_message(json.dumps(response))
         except ValueError as e:
             self.write_message(json.dumps({"error": "Bad Value"}))
-
-
 
     def on_close(self):
         self.clients.remove(self)

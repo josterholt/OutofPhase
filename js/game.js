@@ -84,7 +84,14 @@ function createFromTiledObject(element, group) {
     sprite['id'] = OBJECT_UNIQUE_ID++;
 
     Object.keys(element.properties).forEach(function(key) {
-        sprite[key] = element.properties[key];
+        if(element.properties[key] == "true") {
+            value = true;
+        } else if(element.properties[key] == "false") {
+            value = false;
+        } else {
+            value = element.properties[key];
+        }
+        sprite[key] = value;
     })
 }
 
@@ -134,11 +141,6 @@ function create () {
     results.forEach(function(element) {
         createFromTiledObject(element, trigger_objects)
     }, this);
-
-    //results = findObjectsByType('trigger.flowers', map, 'triggers');
-    //results.forEach(function(element) {
-    //    createFromTiledObject(element, trigger_objects)
-    //}, this);
 
     results = findObjectsByType('section', map, 'triggers');
     results.forEach(function(element) {
@@ -220,7 +222,7 @@ function initPlayer(player_num, player_sprite, x, y) {
     player.animations.add('walk_up', [12,13,14,15], true);
 
     game.physics.enable(player, Phaser.Physics.ARCADE);
-
+    player.body.setSize(32, 10, 0, (player.height - 20));
 
     return player;
 }
@@ -265,7 +267,7 @@ function update() {
         return false;
     },
     function (obj1, obj2) {
-        if(obj2.solid == "true" || obj1.key == "player1" && obj2.solid == "player1" || obj1.key == "player2" && obj2.solid == "player2") {
+        if(obj2.solid  || obj1.key == "player1" && obj2.solid == "player1" || obj1.key == "player2" && obj2.solid == "player2") {
             return true;
         }
         return false;
@@ -280,15 +282,8 @@ function update() {
         return false;
     });
 
-    //var NEW_OVERLAPPED_ITEMS = [];
     game.physics.arcade.overlap(trigger_objects, trigger_objects, function (obj1, obj2) {
         // Make sure these aren't the same object, and it has a condition
-
-        //if(!(obj2.id in OVERLAPPED_ITEMS)) { // This is inefficient because it is checking the object. Should be by ID
-        //    OVERLAPPED_ITEMS[obj2.id] = obj2;
-        //    NEW_OVERLAPPED_ITEMS[obj2.id] = obj2;
-        //}
-
         if(obj1.id != obj2.id && "condition" in obj2) {
             runTrigger(obj1, obj2);
         } else if(obj1.id != obj2.id && obj2.hasOwnProperty('callback')) {
@@ -297,37 +292,26 @@ function update() {
         return false;
     });
 
-    /**
-     * For now, the responsibility of deciding if the conditional still holds true and what to do with that.
-     * This is very broad. Nothing is overlapping this.
-     * Could be problematic when more objects are introduced.
-     */
-    //for(var i in OVERLAPPED_ITEMS) {
-    //    if(!(i in NEW_OVERLAPPED_ITEMS)) {
-    //        var obj = OVERLAPPED_ITEMS[i];
-    //        runReleaseTrigger()
-    //    }
-    //}
     updateReleaseTriggers();
 
     if(game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
         CURRENT_PLAYER.body.velocity.x -= speed;
-        CURRENT_PLAYER.animations.play('walk_left', 15, true);
+        CURRENT_PLAYER.animations.play('walk_left', 5, true);
         CURRENT_PLAYER.body.facing = Phaser.LEFT;
         UI.clearSticky();
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
         CURRENT_PLAYER.body.velocity.x += speed;
-        CURRENT_PLAYER.animations.play('walk_right', 15, true);
+        CURRENT_PLAYER.animations.play('walk_right', 5, true);
         CURRENT_PLAYER.body.facing = Phaser.RIGHT;
         UI.clearSticky();
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
         CURRENT_PLAYER.body.velocity.y -= speed;
-        CURRENT_PLAYER.animations.play('walk_up', 15, true);
+        CURRENT_PLAYER.animations.play('walk_up', 5, true);
         CURRENT_PLAYER.body.facing = Phaser.UP;
         UI.clearSticky();
     } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
         CURRENT_PLAYER.body.velocity.y += speed;
-        CURRENT_PLAYER.animations.play('walk_down', 15, true);
+        CURRENT_PLAYER.animations.play('walk_down', 5, true);
         CURRENT_PLAYER.body.facing = Phaser.DOWN;
         UI.clearSticky();
     } else {

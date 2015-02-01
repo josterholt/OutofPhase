@@ -67,13 +67,13 @@ function updateOtherPlayer(player_indx) {
         var is_moving = !(PLAYERS[player_indx].body.velocity.x == 0 && PLAYERS[player_indx].body.velocity.y == 0);
         if(is_moving) {
             if(PLAYERS[player_indx].body.facing == Phaser.LEFT) {
-                PLAYERS[player_indx].animations.play('walk_left', 15, true);
+                PLAYERS[player_indx].animations.play('walk_left', 5, true);
             } else if(PLAYERS[player_indx].body.facing == Phaser.RIGHT) {
-                PLAYERS[player_indx].animations.play('walk_right', 15, true);
+                PLAYERS[player_indx].animations.play('walk_right', 5, true);
             } else if(PLAYERS[player_indx].body.facing == Phaser.UP) {
-                PLAYERS[player_indx].animations.play('walk_up', 15, true);
+                PLAYERS[player_indx].animations.play('walk_up', 5, true);
             } else if(PLAYERS[player_indx].body.facing == Phaser.DOWN) {
-                PLAYERS[player_indx].animations.play('walk_down', 15, true);
+                PLAYERS[player_indx].animations.play('walk_down', 5, true);
             }
         }
 
