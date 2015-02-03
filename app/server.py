@@ -21,6 +21,13 @@ class EventMgr:
         self.gamePlayer.game.updatePosition(self.gamePlayer.playerIndex, request.get("player"))
         return {"action": "UPDATE", "players": self.gamePlayer.game.getPlayerPositions() }
 
+    def runTrigger(self, request):
+        try:
+            self.gamePlayer.broadcast(request.get("data"))
+        except:
+            return False
+        return True
+
 class GameState:
     token = ""
     gameID = None
@@ -35,7 +42,8 @@ class GameState:
             self.token = game_token
             self.gameID = str(game_token)
 
-        self.players = [{"token": None, "position": [0,0], "velocity": [0,0], "facing": 0}, {"token": None, "position": [450, 450], "velocity": [0,0], "facing": 0}]
+        self.players = [{"token": None, "position": [0,0], "velocity": [0,0], "facing": 0}, {"token": None, "position": [150, 150], "velocity": [0,0], "facing": 0}]
+        self.gamePlayers = []
 
     @staticmethod
     def getGameByToken(token):
@@ -45,6 +53,8 @@ class GameState:
         else:
             return ACTIVE_GAMES[gameID]
 
+    def addPlayer(self, player_index, player):
+        self.gamePlayers.insert(player_index, player)
 
     def getStateUpdates(self):
         return {"action": "UPDATE", "players": self.getPlayerPositions() }
@@ -63,17 +73,22 @@ class GameState:
 
 
 class GamePlayer:
-    def __init__(self, game, player_index, player_token):
+    def __init__(self, connection, game, player_index, player_token):
+        self.connection = connection
         self.game = game
         self.eventMgr = EventMgr(self)
         self.playerIndex = player_index
         self.token = player_token
-
         print("Player Index: " + str(self.playerIndex))
 
     def getToken(self):
         return self.token
 
+    def broadcast(self, data):
+        message = json.dumps({"status": "OK", "data": { "action": "runTrigger", "data": data } })
+        for player in self.game.gamePlayers:
+            if player.playerIndex != self.playerIndex:
+                player.connection.write_message(message)
 
 
 
@@ -122,13 +137,14 @@ class GameClient(websocket.WebSocketHandler):
         player_index = None
 
         if player_token is not None:
-            print(game.players[0])
             if game.players[0].get("token") == player_token:
                 player_index = 0
-                self.gamePlayer = GamePlayer(game, 0, player_token)
+                self.gamePlayer = GamePlayer(self, game, 0, player_token)
+                game.addPlayer(0, self.gamePlayer)
             elif game.players[1].get("token") == player_token:
                 player_index = 1
-                self.gamePlayer = GamePlayer(game, 1, player_token)
+                self.gamePlayer = GamePlayer(self, game, 1, player_token)
+                game.addPlayer(1, self.gamePlayer)
 
         # No matching player token found, and second player slot is occupied
         if player_index is None:
@@ -137,12 +153,14 @@ class GameClient(websocket.WebSocketHandler):
                 # Game is fresh, generate new player token and assign as first player
                 player_token = str(uuid.uuid4())
                 game.players[0]['token'] = player_token
-                self.gamePlayer = GamePlayer(game, 0, player_token)
+                self.gamePlayer = GamePlayer(self, game, 0, player_token)
+                game.addPlayer(0, self.gamePlayer)
             elif game.players[1].get("token") is None:
                 print("Second player joined")
                 player_token = str(uuid.uuid4())
                 game.players[1]['token'] = player_token
-                self.gamePlayer = GamePlayer(game, 1, player_token)
+                self.gamePlayer = GamePlayer(self, game, 1, player_token)
+                game.addPlayer(1, self.gamePlayer)
             else:
                 return false
 
@@ -157,6 +175,9 @@ class GameClient(websocket.WebSocketHandler):
         try:
             request = json.loads(message)
             response['status'] = 'OK'
+
+            if request.get("action") != "updatePlayer":
+                print(request)
 
             #print(request)
 
@@ -191,6 +212,7 @@ class GameClient(websocket.WebSocketHandler):
                         response['data'] = {"action": "INIT", "players": game.getPlayerPositions(), "gameToken": str(game.getToken()), "playerToken": self.gamePlayer.getToken() }
 
             elif self.gamePlayer is not None and request.get("action") in dir(self.gamePlayer.eventMgr):
+                response['status'] = 'OK'
                 response['data'] = getattr(self.gamePlayer.eventMgr, request.get("action"))(request)
             else:
                 #print(dir(self.gamePlayer.eventMgr))
@@ -202,6 +224,7 @@ class GameClient(websocket.WebSocketHandler):
             self.write_message(json.dumps(response))
         except ValueError as e:
             self.write_message(json.dumps({"error": "Bad Value"}))
+            print(message)
 
     def on_close(self):
         self.clients.remove(self)

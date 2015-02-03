@@ -12,6 +12,8 @@
     var PLAYER_NUM;
     var isConnected = false;
     var SERVER_STATE = {"data": { "players": [] }};
+    var CLIENT = new Client();
+    var REMOTE_EVENTS = [];
     var ws;
 
     var pieces = document.cookie.split(";");
@@ -78,22 +80,20 @@
 
         ws.onmessage = function (e) {
             if("data" in e) {
-
                 var response = JSON.parse(e.data);
                 var action = null;
                 if(response.status != "OK") {
-                    console.debug(response)
                     if(response.message == "Token is invalid" && PLAYER_NUM == 1) {
                         request = JSON.stringify({ "action": "createGame" })
                         ws.send(request)
                     }
                 } else {
-                    if("gameToken" in response.data) {
+                    if("data" in response && response.data != null && "gameToken" in response.data) {
                         localStorage['game_token'] = response.data.gameToken;
                         prompt("Game Token", response.data.gameToken)
                     }
 
-                    if("playerToken" in response.data) {
+                    if(response.data != null && "playerToken" in response.data) {
                         localStorage['player_token'] = response.data.playerToken;
                     }
 
@@ -101,6 +101,7 @@
                         action = response.data.action;
                     }
 
+                    //console.debug(action);
                     if(action == "INIT") {
                         SERVER_STATE.status = "FRESH";
                         SERVER_STATE.data.players[0] = response.data.players[0];
@@ -113,6 +114,8 @@
                             SERVER_STATE.data.players[0] = response.data.players[0];
                             SERVER_STATE.data.players[1] = response.data.players[1];
                         }
+                    } else if(action == "runTrigger") {
+                        REMOTE_EVENTS.push(response.data.data)
                     } else {
                         console.debug("Bad message, discarding")
                     }

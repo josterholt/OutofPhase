@@ -83,3 +83,35 @@ function updateOtherPlayer(player_indx) {
         SERVER_STATE.status = "OLD";
     }
 }
+
+function processRemoteEvents() {
+    for(var i in REMOTE_EVENTS) {
+        runTrigger(REMOTE_EVENTS[i].name, REMOTE_EVENTS[i].object1, REMOTE_EVENTS[i].object2);
+    }
+}
+
+var Client = function () {
+    this.triggerQueue = {}
+    // Add trigger to queue. This will be sent next update
+    this.queueTrigger = function (name, obj1, obj2) {
+        var data = {};
+        data['name'] = name;
+
+        // Extract needed info from objects
+        data['object1'] = {
+            "target": obj1.target,
+            "group": obj1.group
+        }
+
+        data['object2'] = {
+            "target": obj2.target,
+            "group": obj2.group
+        }
+        this.triggerQueue[obj1.id + obj2.id] = {"action": "runTrigger", "data": data };
+    }
+
+    this.sendMessage = function (data) {
+        var request = JSON.stringify(data);
+        ws.send(request)
+    }
+}

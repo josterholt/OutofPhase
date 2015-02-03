@@ -222,6 +222,7 @@ function initPlayer(player_num, player_sprite, x, y) {
     player.animations.add('walk_up', [12,13,14,15], true);
 
     game.physics.enable(player, Phaser.Physics.ARCADE);
+    player.body.collideWorldBounds = true;
     player.body.setSize(32, 10, 0, (player.height - 20));
 
     return player;
@@ -245,13 +246,13 @@ function setPlayer(index) {
 
 var OVERLAPPED_ITEMS = [];
 function update() {
-    if(this.tabKey.justUp) {
-        if(CURRENT_PLAYER_INDEX == 0) {
-            setPlayer(1);
-        } else {
-            setPlayer(0);
-        }
-    }
+    //if(this.tabKey.justUp) {
+        //if(CURRENT_PLAYER_INDEX == 0) {
+            //setPlayer(1);
+        //} else {
+            //setPlayer(0);
+        //}
+    //}
 
     if(UI.isSticky == false) {
         UI.hide();
@@ -259,6 +260,8 @@ function update() {
 
     CURRENT_PLAYER.body.velocity.x = 0;
     CURRENT_PLAYER.body.velocity.y = 0;
+
+    processRemoteEvents();
 
     game.physics.arcade.collide(CURRENT_PLAYER, collide_layer);
     game.physics.arcade.collide(PLAYERS[0], PLAYERS[1]);
@@ -275,9 +278,9 @@ function update() {
 
     var overlapping = game.physics.arcade.overlap(CURRENT_PLAYER, trigger_objects, function (obj1, obj2) {
         if("condition" in obj2) {
-            runTrigger(obj1, obj2);
+            processTrigger(obj1, obj2);
         } else if(obj2.hasOwnProperty('callback')) {
-            runTrigger(obj1, obj2);
+            processTrigger(obj1, obj2);
         }
         return false;
     });
@@ -285,9 +288,9 @@ function update() {
     game.physics.arcade.overlap(trigger_objects, trigger_objects, function (obj1, obj2) {
         // Make sure these aren't the same object, and it has a condition
         if(obj1.id != obj2.id && "condition" in obj2) {
-            runTrigger(obj1, obj2);
+            processTrigger(obj1, obj2);
         } else if(obj1.id != obj2.id && obj2.hasOwnProperty('callback')) {
-            runTrigger(obj1, obj2);
+            processTrigger(obj1, obj2);
         }
         return false;
     });
@@ -336,7 +339,7 @@ function update() {
         }
 
         game.physics.arcade.overlap(CURRENT_PLAYER_HITBOX, trigger_objects, function (obj1, obj2) {
-                runTrigger(obj1, obj2);
+            processTrigger(obj1, obj2);
         });
     }
 
