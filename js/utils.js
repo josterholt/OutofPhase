@@ -85,15 +85,22 @@ function updateOtherPlayer(player_indx) {
 }
 
 function processRemoteEvents() {
-    for(var i in REMOTE_EVENTS) {
-        runTrigger(REMOTE_EVENTS[i].name, REMOTE_EVENTS[i].object1, REMOTE_EVENTS[i].object2);
+    if(REMOTE_EVENTS.length > 0) {
+        console.debug("Running remote events");
+        console.debug(REMOTE_EVENTS);
+        for (var i in REMOTE_EVENTS) {
+            runTrigger(REMOTE_EVENTS[i].name, REMOTE_EVENTS[i].object1, REMOTE_EVENTS[i].object2, true);
+        }
+        REMOTE_EVENTS = []
     }
 }
 
 var Client = function () {
     this.triggerQueue = {}
+    this.messageQueue = [];
     // Add trigger to queue. This will be sent next update
     this.queueTrigger = function (name, obj1, obj2) {
+        console.debug("Queueing trigger: " + name)
         var data = {};
         data['name'] = name;
 
@@ -110,8 +117,35 @@ var Client = function () {
         this.triggerQueue[obj1.id + obj2.id] = {"action": "runTrigger", "data": data };
     }
 
-    this.sendMessage = function (data) {
-        var request = JSON.stringify(data);
-        ws.send(request)
+    this.queueRequest = function (request) {
+        this.messageQueue.push(request);
+    }
+
+    this.sendQueueMessages = function () {
+        var finalQueue = [];
+        for(var i in this.messageQueue) {
+            finalQueue.push(this.messageQueue[i]);
+        }
+
+        for(var i in this.triggerQueue) {
+            finalQueue.push(this.triggerQueue[i]);
+        }
+
+        if(finalQueue.length > 0) {
+            this.send(finalQueue);
+        }
+
+        this.messageQueue = [];
+        this.triggerQueue = {};
+    }
+
+    this.send = function (data) {
+        if(typeof(data) != "string") {
+            var requests = JSON.stringify(data);
+        } else {
+            var requests = data;
+        }
+
+        ws.send(requests)
     }
 }

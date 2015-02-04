@@ -22,11 +22,12 @@ class EventMgr:
         return {"action": "UPDATE", "players": self.gamePlayer.game.getPlayerPositions() }
 
     def runTrigger(self, request):
-        try:
-            self.gamePlayer.broadcast(request.get("data"))
-        except:
-            return False
-        return True
+        response = {"action": "runTrigger", "data": request.get("data")}
+        self.gamePlayer.broadcast(response)
+        return {}
+
+    def default(self, request):
+        return {}
 
 class GameState:
     token = ""
@@ -85,9 +86,12 @@ class GamePlayer:
         return self.token
 
     def broadcast(self, data):
-        message = json.dumps({"status": "OK", "data": { "action": "runTrigger", "data": data } })
+        #message = json.dumps([{"status": "OK", "data": { "action": "runTrigger", "data": data } }])
+        message = json.dumps([{"status": "OK", "data": data }])
         for player in self.game.gamePlayers:
             if player.playerIndex != self.playerIndex:
+                print(player.playerIndex)
+                print(message)
                 player.connection.write_message(message)
 
 
@@ -170,19 +174,33 @@ class GameClient(websocket.WebSocketHandler):
         return self.games[self.id]
 
     def on_message(self, message):
-        response = {"status": None, "data": None}
+        responses = []
+        #response = {"status": None, "data": None}
 
+        #try:
+        requests = json.loads(message)
+
+        for request in requests:
+            responses.append(self.process_request(request))
+        #except e:
+            #responses.append({"status": "ERROR", "message": "An error occurred"})
+            #raise e
+
+        self.write_message(json.dumps(responses))
+
+
+    def process_request(self, request):
         try:
-            request = json.loads(message)
+            response = {}
             response['status'] = 'OK'
 
-            if request.get("action") != "updatePlayer":
-                print(request)
-
+            #print("testing");
             #print(request)
 
             if "action" not in request:
-                response = self.em.default(request)
+                #response = self.gamePlayer.eventMgr.default(request)
+                response['status'] = "ERROR"
+                response['message'] = "No action specified"
             elif request.get("action") == "createGame":
                 print("Creating game")
                 game_token = self.createGame(request)
@@ -215,16 +233,13 @@ class GameClient(websocket.WebSocketHandler):
                 response['status'] = 'OK'
                 response['data'] = getattr(self.gamePlayer.eventMgr, request.get("action"))(request)
             else:
-                #print(dir(self.gamePlayer.eventMgr))
-                #print(request.get("action"))
                 response['status'] = 'ERROR'
                 response['data'] = 'INVALID STATE'
 
-            #print(response)
-            self.write_message(json.dumps(response))
+            return response
         except ValueError as e:
-            self.write_message(json.dumps({"error": "Bad Value"}))
-            print(message)
+            return {"error": "Bad Value"}
+
 
     def on_close(self):
         self.clients.remove(self)

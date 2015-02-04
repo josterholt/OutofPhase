@@ -12,9 +12,16 @@ function processTrigger(obj1, obj2) {
     }
 }
 
-function runTrigger(name, obj1, obj2) {
+function runTrigger(name, obj1, obj2, remote) {
+    if(remote == undefined) {
+        remote = false;
+    }
+
     if(name in triggers) {
         triggers[name](obj1, obj2);
+        if(remote == false && (name == 'kill' || name == 'show' || name == 'hide')) {
+            CLIENT.queueTrigger(name, obj1, obj2);
+        }
     }
 }
 

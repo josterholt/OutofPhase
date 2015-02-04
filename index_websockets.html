@@ -31,22 +31,23 @@
     }
 
     function updatePosition(x, y) {
-        ws.send(JSON.stringify({"action": "updatePlayerPosition", "x": x, "y": y}))
+        CLIENT.send(JSON.stringify({"action": "updatePlayerPosition", "x": x, "y": y}))
     }
 
     var com_update = function () {
+        var requests = [];
         if(isConnected && CURRENT_PLAYER) {
-            var request = JSON.stringify({
+            CLIENT.queueRequest({
                 "action": "updatePlayer",
                 "player": {
                     "position": [CURRENT_PLAYER.x, CURRENT_PLAYER.y],
                     "velocity": [CURRENT_PLAYER.body.velocity.x, CURRENT_PLAYER.body.velocity.y],
                     "facing": CURRENT_PLAYER.body.facing
-                },
-
+                }
             });
 
-            ws.send(request);
+            //ws.send(request);
+            CLIENT.sendQueueMessages();
         }
     }
 
@@ -57,9 +58,9 @@
             if(PLAYER_NUM == 1) {
                 console.debug("Create game...");
                 if(localStorage['game_token'] != null) {
-                    request = JSON.stringify({ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  })
+                    request = JSON.stringify([{ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  }])
                 } else {
-                    request = JSON.stringify({ "action": "createGame" })
+                    request = JSON.stringify([{ "action": "createGame" }])
                 }
             } else {
                 if(localStorage['game_token'] == null) {
@@ -67,11 +68,11 @@
                 }
 
                 if(localStorage['game_token'] != null) {
-                    request = JSON.stringify({ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  })
+                    request = JSON.stringify([{ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  }])
                 }
             }
             isConnected = true;
-            ws.send(request)
+            CLIENT.send(request)
         }
 
         ws.onerror = function (error) {
@@ -80,44 +81,55 @@
 
         ws.onmessage = function (e) {
             if("data" in e) {
-                var response = JSON.parse(e.data);
-                var action = null;
-                if(response.status != "OK") {
-                    if(response.message == "Token is invalid" && PLAYER_NUM == 1) {
-                        request = JSON.stringify({ "action": "createGame" })
-                        ws.send(request)
-                    }
-                } else {
-                    if("data" in response && response.data != null && "gameToken" in response.data) {
-                        localStorage['game_token'] = response.data.gameToken;
-                        prompt("Game Token", response.data.gameToken)
-                    }
+                var responses = JSON.parse(e.data);
 
-                    if(response.data != null && "playerToken" in response.data) {
-                        localStorage['player_token'] = response.data.playerToken;
-                    }
+                for(i in responses) {
+                    var response = responses[i];
 
-                    if("data" in response && response.data != null && "action" in response.data) {
-                        action = response.data.action;
-                    }
+                    var action = null;
+                    if(response.status != "OK") {
+                        if(response.message == "Token is invalid" && PLAYER_NUM == 1) {
+                            request = JSON.stringify([{ "action": "createGame" }])
+                            CLIENT.send(request)
+                        }
+                    } else {
 
-                    //console.debug(action);
-                    if(action == "INIT") {
-                        SERVER_STATE.status = "FRESH";
-                        SERVER_STATE.data.players[0] = response.data.players[0];
-                        SERVER_STATE.data.players[1] = response.data.players[1];
-                        startGame();
-                        window.setInterval(com_update, 100);
-                    } else if(action == "UPDATE") {
-                        if ("data" in response && response.data != null) {
+                        if ("data" in response && response.data != null && response.data != false && "action" in response.data) {
+                            action = response.data.action;
+                        }
+
+                        console.debug(action);
+
+                        //console.debug(action);
+                        if (action == "INIT") {
+                            if ("data" in response && response.data != null && response.data != false && "gameToken" in response.data) {
+                                localStorage['game_token'] = response.data.gameToken;
+                                prompt("Game Token", response.data.gameToken)
+                            }
+
+                            if (response.data != null && "playerToken" in response.data) {
+                                localStorage['player_token'] = response.data.playerToken;
+                            }
+
                             SERVER_STATE.status = "FRESH";
                             SERVER_STATE.data.players[0] = response.data.players[0];
                             SERVER_STATE.data.players[1] = response.data.players[1];
+                            startGame();
+                            window.setInterval(com_update, 100);
+                        } else if (action == "UPDATE") {
+                            if ("data" in response && response.data != null) {
+                                SERVER_STATE.status = "FRESH";
+                                SERVER_STATE.data.players[0] = response.data.players[0];
+                                SERVER_STATE.data.players[1] = response.data.players[1];
+                            }
+                        } else if (action == "runTrigger") {
+                            console.debug("Adding remote event");
+                            REMOTE_EVENTS.push(response.data.data)
+                        } else {
+                            console.debug("Bad message, discarding")
+                            console.debug(response)
+                            console.debug(response.data)
                         }
-                    } else if(action == "runTrigger") {
-                        REMOTE_EVENTS.push(response.data.data)
-                    } else {
-                        console.debug("Bad message, discarding")
                     }
                 }
             }
