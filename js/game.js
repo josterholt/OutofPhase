@@ -72,8 +72,17 @@ function findObjectsByType(type, map, layer) {
 }
 
 var OBJECT_UNIQUE_ID = 0;
-function createFromTiledObject(element, group) {
-    var sprite = group.create(element.x, element.y, element.properties.sprite);
+function createFromTiledObject(element, group, sprite_class) {
+    var sprite;
+    if(sprite_class) {
+        sprite = new sprite_class(game, element.x, element.y, element.properties.sprite);
+        game.physics.enable(sprite, Phaser.Physics.ARCADE);
+        group.add(sprite);
+
+    } else {
+        sprite = group.create(element.x, element.y, element.properties.sprite);
+    }
+
 
     if("pushable" in element.properties && element.properties.pushable == "true") {
         sprite.body.immovable = false;
@@ -137,6 +146,11 @@ function create () {
         createFromTiledObject(element, trigger_objects)
     }, this);
 
+    results = findObjectsByType('trigger.pressure', map, 'triggers');
+    results.forEach(function(element) {
+        createFromTiledObject(element, trigger_objects, PressureTrigger)
+    }, this);
+
     results = findObjectsByType('trigger.object', map, 'triggers');
     results.forEach(function(element) {
         createFromTiledObject(element, trigger_objects)
@@ -188,7 +202,6 @@ function create () {
     UI.init();
     UI.show("Use arrow keys to move, spacebar to interact, tab to change character.");
     UI.isSticky = true;
-
 }
 
 function initTargetObjects(initial) {
@@ -253,6 +266,7 @@ function update() {
             //setPlayer(0);
         //}
     //}
+
 
     if(UI.isSticky == false) {
         UI.hide();

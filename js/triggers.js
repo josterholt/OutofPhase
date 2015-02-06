@@ -1,5 +1,7 @@
 function processTrigger(obj1, obj2) {
-    if("callback" in obj2) {
+    if("run" in obj2) {
+        obj2.run(obj1);
+    } else if("callback" in obj2) {
         if(obj2.callback in triggers) {
             //triggers[obj2.callback](obj1, obj2);
             runTrigger(obj2.callback, obj1, obj2);

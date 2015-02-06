@@ -161,7 +161,7 @@
                      "message":"1",
                      "sprite":"trigger.trigger1",
                      "target":"wall1",
-                     "type":"trigger"
+                     "type":"trigger.pressure"
                     },
                  "rotation":0,
                  "type":"trigger",
@@ -200,7 +200,7 @@
                      "message":"1",
                      "sprite":"trigger.trigger1",
                      "target":"wall1",
-                     "type":"trigger"
+                     "type":"trigger.pressure"
                     },
                  "rotation":0,
                  "type":"trigger",
@@ -527,7 +527,7 @@
                      "condition":"barrel1",
                      "sprite":"trigger.trigger1",
                      "target":"wall2",
-                     "type":"trigger"
+                     "type":"trigger.pressure"
                     },
                  "rotation":0,
                  "type":"trigger",

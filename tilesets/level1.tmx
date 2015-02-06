@@ -131,7 +131,7 @@
     <property name="message" value="1"/>
     <property name="sprite" value="trigger.trigger1"/>
     <property name="target" value="wall1"/>
-    <property name="type" value="trigger"/>
+    <property name="type" value="trigger.pressure"/>
    </properties>
   </object>
   <object id="24" name="help3" type="trigger.help" gid="12" x="447" y="65">
@@ -148,7 +148,7 @@
     <property name="message" value="1"/>
     <property name="sprite" value="trigger.trigger1"/>
     <property name="target" value="wall1"/>
-    <property name="type" value="trigger"/>
+    <property name="type" value="trigger.pressure"/>
    </properties>
   </object>
   <object id="29" name="wall2" type="wall" gid="127" x="320" y="481">
@@ -289,7 +289,7 @@
     <property name="condition" value="barrel1"/>
     <property name="sprite" value="trigger.trigger1"/>
     <property name="target" value="wall2"/>
-    <property name="type" value="trigger"/>
+    <property name="type" value="trigger.pressure"/>
    </properties>
   </object>
  </objectgroup>

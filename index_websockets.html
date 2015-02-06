@@ -3,7 +3,14 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
+    <style type="text/css">
+        body {
+            overflow:hidden;
+        }
+    </style>
+
     <script src="js/phaser.min.js"></script>
+    <script src="js/objects.js"></script>
     <script src="js/triggers.js"></script>
     <script src="js/utils.js"></script>
     <script type="text/javascript" src="js/game.js"></script>
@@ -98,9 +105,7 @@
                             action = response.data.action;
                         }
 
-                        console.debug(action);
-
-                        //console.debug(action);
+                       //console.debug(action);
                         if (action == "INIT") {
                             if ("data" in response && response.data != null && response.data != false && "gameToken" in response.data) {
                                 localStorage['game_token'] = response.data.gameToken;
