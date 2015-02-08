@@ -28,7 +28,7 @@ PressureTrigger.prototype.run = function (target) {
     // If this is the beginning of the press event, set flags
     this.active = true;
     if(!this.pressed) {
-        this.onActivate();
+        this.onActivate(target);
         this.justPressed = true;
     } else {
         this.justPressed = false;
@@ -38,9 +38,11 @@ PressureTrigger.prototype.run = function (target) {
     this._pressedInUpdate = true;
 }
 
-PressureTrigger.prototype.onActivate = function () {
+PressureTrigger.prototype.onActivate = function (target) {
     // Broadcast onActivate
     console.debug("Activate");
+    console.debug(this.callback, this, target)
+    runTrigger(this.callback, target, this)
 }
 
 /**

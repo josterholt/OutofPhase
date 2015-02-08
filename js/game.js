@@ -32,6 +32,7 @@ var object2_layer;
 var groups;
 var spaceKey;
 var text = null;
+var fx;
 
 var CURRENT_PLAYER_HITBOX;
 
@@ -46,8 +47,8 @@ function preload () {
     game.load.spritesheet('player1', 'images/characters/tremel.png', 32, 48);
     game.load.spritesheet('player2', 'images/characters/xmasgirl1.png', 32, 48);
 
-    // Trigger assets
-    game.load.image('empty', 'images/empty.png');
+    // Trigger image assets
+    game.load.image('empty', 'images/full.png');
     game.load.image('trigger.help', 'images/triggers/letter.png');
     game.load.image('trigger.trigger1', 'images/triggers/trigger1.png');
     game.load.image('trigger.flowers1', 'images/triggers/flowers1.png');
@@ -57,7 +58,16 @@ function preload () {
     game.load.image('wall.right', 'images/triggers/wall_right.png');
     game.load.image('wall.bottom', 'images/triggers/wall_bottom.png');
     game.load.image('trigger.barrel', 'images/triggers/barrel.png');
+
+    // Attack image assets
+    game.load.image('attack.swipe', 'images/attack/sword_swipe.png');
+
+    // Fonts
     game.load.script('webfont', '//ajax.googleapis.com/ajax/libs/webfont/1.4.7/webfont.js');
+
+    // Sounds
+    game.load.audio('attack1', 'sounds/attack/knife_attack1.mp3');
+    game.load.audio('attack1', 'sounds/attack/knife_attack2.mp3');
 }
 
 function findObjectsByType(type, map, layer) {
@@ -91,6 +101,7 @@ function createFromTiledObject(element, group, sprite_class) {
     }
 
     sprite['id'] = OBJECT_UNIQUE_ID++;
+    sprite.body['id'] = sprite['id'];
 
     Object.keys(element.properties).forEach(function(key) {
         if(element.properties[key] == "true") {
@@ -108,6 +119,9 @@ function create () {
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.stage.backgroundColor = '#000000';
     game.stage.disableVisibilityChange = true;
+
+    fx = game.add.audio('attack1');
+    fx.allowMultiple = true;
 
     map = game.add.tilemap('level1');
 
@@ -242,10 +256,25 @@ function initPlayer(player_num, player_sprite, x, y) {
 }
 
 function initPlayerHitBox(player_num) {
-    player_hitbox = game.add.sprite(5, 100, 'empty');
+    //player_hitbox = game.add.sprite(5, 100, 'empty');
+    player_hitbox = game.add.sprite(0, 0);
+
+    //var circle = game.add.graphics(0, 0);
+    //circle.beginFill(0x000000);
+    //circle.drawCircle(0,0,10);
+    //player_hitbox.addChild(circle);
+
+    var graphic = game.add.graphics(0, 0);
+    graphic.boundsPadding = 0;
+    graphic.lineStyle(2, 0xFFFFFF, 1);
+    graphic.arc(0, 0, 32, 0.90, -0.90, true);
+    player_hitbox.addChild(graphic);
+
     player_hitbox.group = "PLAYER" + player_num;
-    player_hitbox.visible = false;
+    player_hitbox.alpha = 1;
     game.physics.enable(player_hitbox, Phaser.Physics.ARCADE);
+    player_hitbox.body.allowRotation = true;
+
     return player_hitbox;
 }
 
@@ -335,24 +364,87 @@ function update() {
         CURRENT_PLAYER.animations.stop(null, 0);
     }
 
+    if(CURRENT_PLAYER.body.immovable == true) {
+        CURRENT_PLAYER.body.velocity.y = 0;
+        CURRENT_PLAYER.body.velocity.x = 0;
+        CURRENT_PLAYER.animations.stop(null, 0);
+    }
 
-    if(this.spaceKey.justUp) {
+    if(this.spaceKey.justDown) {
+        CURRENT_PLAYER.body.velocity.y = 0;
+        CURRENT_PLAYER.body.velocity.x = 0;
+        CURRENT_PLAYER.animations.stop(null, 0);
+        CURRENT_PLAYER.body.immovable = true;
+
         UI.clearSticky();
         if(CURRENT_PLAYER.body.facing == Phaser.RIGHT) {
-            CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x + (CURRENT_PLAYER.body.width / 2);
-            CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y;
+            CURRENT_PLAYER_HITBOX.reset(CURRENT_PLAYER.x + (CURRENT_PLAYER.width / 2), CURRENT_PLAYER.y + (CURRENT_PLAYER_HITBOX.body.height / 2));
+            CURRENT_PLAYER_HITBOX.body.facing = Phaser.RIGHT;
+            CURRENT_PLAYER_HITBOX.pivot.x = 0;
+            CURRENT_PLAYER_HITBOX.pivot.y = -5;
+            CURRENT_PLAYER_HITBOX.body.rotation = 0;
         } else if(CURRENT_PLAYER.body.facing == Phaser.LEFT) {
-            CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x - (CURRENT_PLAYER_HITBOX.body.width);
-            CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y;
+            CURRENT_PLAYER_HITBOX.reset(CURRENT_PLAYER.x - (CURRENT_PLAYER_HITBOX.body.width/2), CURRENT_PLAYER.y + (CURRENT_PLAYER_HITBOX.body.height/2));
+            CURRENT_PLAYER_HITBOX.pivot.x = 32;
+            CURRENT_PLAYER_HITBOX.pivot.y = 5;
+            CURRENT_PLAYER_HITBOX.body.rotation = 180// Math.PI;
+            CURRENT_PLAYER_HITBOX.body.facing = Phaser.LEFT;
         } else if(CURRENT_PLAYER.body.facing == Phaser.DOWN) {
-            CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x;
-            CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y + (CURRENT_PLAYER.body.height);
+            CURRENT_PLAYER_HITBOX.body.facing = Phaser.DOWN;
+            CURRENT_PLAYER_HITBOX.reset(CURRENT_PLAYER.body.x, CURRENT_PLAYER.body.y);
+            CURRENT_PLAYER_HITBOX.pivot.x = -2;
+            CURRENT_PLAYER_HITBOX.pivot.y = 15
+            CURRENT_PLAYER_HITBOX.body.rotation = 90;
         } else if(CURRENT_PLAYER.body.facing == Phaser.UP) {
-            CURRENT_PLAYER_HITBOX.body.x = CURRENT_PLAYER.body.x;
-            CURRENT_PLAYER_HITBOX.body.y = CURRENT_PLAYER.body.y - (CURRENT_PLAYER_HITBOX.body.height / 2);
+            CURRENT_PLAYER_HITBOX.reset(CURRENT_PLAYER.body.x, CURRENT_PLAYER.y - (CURRENT_PLAYER_HITBOX.height / 2));
+            CURRENT_PLAYER_HITBOX.body.facing = Phaser.UP;
+            CURRENT_PLAYER_HITBOX.pivot.x = 32;
+            CURRENT_PLAYER_HITBOX.pivot.y = -15
+            CURRENT_PLAYER_HITBOX.body.rotation = -90;
+
+            //CURRENT_PLAYER_HITBOX.rotation = (3 * Math.PI) / 2;
+
         }
 
+        //body1 = CURRENT_PLAYER_HITBOX.body;
+        //g1 = game.add.graphics(body1.x, body1.y)
+        //g1.beginFill(0xFF0000)
+        //g1.drawCircle(0, 0, 5);
+        //game.add.tween(g1).to({ alpha: 0 }, 3000, Phaser.Easing.Linear.None, true);
+        //
+        //g2 = game.add.graphics(body1.x, body1.bottom)
+        //g2.beginFill(0x00FF00)
+        //g2.drawCircle(0, 0, 5);
+        //game.add.tween(g2).to({ alpha: 0 }, 3000, Phaser.Easing.Linear.None, true);
+        //
+        //g3 = game.add.graphics(body1.right, body1.y)
+        //g3.beginFill(0xFF00FF)
+        //g3.drawCircle(0, 0, 5);
+        //game.add.tween(g3).to({ alpha: 0 }, 3000, Phaser.Easing.Linear.None, true);
+        //
+        //g4 = game.add.graphics(body1.right, body1.bottom)
+        //g4.beginFill(0xCCCCCC)
+        //g4.drawCircle(0, 0, 5);
+        //game.add.tween(g4).to({ alpha: 0 }, 3000, Phaser.Easing.Linear.None, true);
+
+
+        fx.play();
+
+        CURRENT_PLAYER_HITBOX.visible = true;
+        s = game.add.tween(CURRENT_PLAYER_HITBOX)
+        CURRENT_PLAYER_HITBOX.alpha = 1;
+        s.to({ alpha: 0 }, 500, Phaser.Easing.Linear.None, true)
+        s.onComplete.add(function () {
+            CURRENT_PLAYER.body.immovable = false;
+        })
+
+        //s.start();
+        console.debug(CURRENT_PLAYER_HITBOX.body.x + " / " + CURRENT_PLAYER_HITBOX.body.y)
+
+
+
         game.physics.arcade.overlap(CURRENT_PLAYER_HITBOX, trigger_objects, function (obj1, obj2) {
+            console.debug("Hit");
             processTrigger(obj1, obj2);
         });
     }
