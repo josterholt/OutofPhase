@@ -41,7 +41,7 @@ PressureTrigger.prototype.run = function (target) {
 PressureTrigger.prototype.onActivate = function (target) {
     // Broadcast onActivate
     console.debug("Activate");
-    console.debug(this.callback, this, target)
+    console.debug(this.callback);
     runTrigger(this.callback, target, this)
 }
 

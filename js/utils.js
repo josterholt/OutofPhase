@@ -56,34 +56,6 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function updateOtherPlayer(player_indx) {
-    if(player_indx in SERVER_STATE.data.players && SERVER_STATE.status == "FRESH") {
-        PLAYERS[player_indx].x = SERVER_STATE.data.players[player_indx].position[0];
-        PLAYERS[player_indx].y = SERVER_STATE.data.players[player_indx].position[1];
-        PLAYERS[player_indx].body.velocity.x = SERVER_STATE.data.players[player_indx].velocity[0];
-        PLAYERS[player_indx].body.velocity.y = SERVER_STATE.data.players[player_indx].velocity[1];
-        PLAYERS[player_indx].body.facing = SERVER_STATE.data.players[player_indx].facing;
-
-        var is_moving = !(PLAYERS[player_indx].body.velocity.x == 0 && PLAYERS[player_indx].body.velocity.y == 0);
-        if(is_moving) {
-            if(PLAYERS[player_indx].body.facing == Phaser.LEFT) {
-                PLAYERS[player_indx].animations.play('walk_left', 5, true);
-            } else if(PLAYERS[player_indx].body.facing == Phaser.RIGHT) {
-                PLAYERS[player_indx].animations.play('walk_right', 5, true);
-            } else if(PLAYERS[player_indx].body.facing == Phaser.UP) {
-                PLAYERS[player_indx].animations.play('walk_up', 5, true);
-            } else if(PLAYERS[player_indx].body.facing == Phaser.DOWN) {
-                PLAYERS[player_indx].animations.play('walk_down', 5, true);
-            }
-        }
-
-        if(!is_moving) {
-            PLAYERS[player_indx].animations.stop(null, 0);
-        }
-        SERVER_STATE.status = "OLD";
-    }
-}
-
 function processRemoteEvents() {
     if(REMOTE_EVENTS.length > 0) {
         console.debug("Running remote events");
@@ -148,4 +120,81 @@ var Client = function () {
 
         ws.send(requests)
     }
+}
+
+var OBJECT_UNIQUE_ID = 0;
+function createFromTiledObject(element, group, sprite_class) {
+    var sprite;
+    if(sprite_class) {
+        sprite = new sprite_class(game, element.x, element.y, element.properties.sprite);
+        game.physics.enable(sprite, Phaser.Physics.ARCADE);
+        group.add(sprite);
+
+    } else {
+        sprite = group.create(element.x, element.y, element.properties.sprite);
+    }
+
+
+    if("pushable" in element.properties && element.properties.pushable == "true") {
+        sprite.body.immovable = false;
+    } else {
+        sprite.body.immovable = true;
+    }
+
+    sprite['id'] = OBJECT_UNIQUE_ID++;
+    sprite.body['id'] = sprite['id'];
+
+    Object.keys(element.properties).forEach(function(key) {
+        if(element.properties[key] == "true") {
+            value = true;
+        } else if(element.properties[key] == "false") {
+            value = false;
+        } else {
+            value = element.properties[key];
+        }
+        sprite[key] = value;
+    })
+
+    if(sprite.sprite == 'trigger.barrel') {
+        sprite.update = function () {
+            //console.debug(this.body.velocity.y)
+        }
+    }
+}
+
+function findObjectsByType(type, map, layer) {
+    var results = [];
+    map.objects[layer].forEach(function(element) {
+        if(element.properties.type == type) {
+            element.y -= map.tileHeight;
+            results.push(element);
+        }
+    });
+    return results;
+}
+
+function initTargetObjects(initial) {
+    for(i in trigger_objects.children) {
+        var obj = trigger_objects.children[i];
+        if("visible_condition" in obj) {
+            if (obj.visible_condition == "PLAYER1" || obj.visible_condition == "PLAYER2") {
+                // Hard coded hack intended to abstract
+                // Player should be in region trigger is in to see change
+                if (initial || game.physics.arcade.intersects(PLAYERS[1].body, sections.children[0])) {
+                    var player = PLAYERS[CURRENT_PLAYER_INDEX];
+                    if (player.name.toUpperCase() != obj.visible_condition.toUpperCase()) {
+                        obj.visible = false;
+                    } else {
+                        obj.visible = true;
+                    }
+                }
+            } else if (obj.visible == "FALSE") {
+                obj.visible = false;
+            }
+        }
+    }
+}
+
+function updateOtherPlayer() {
+
 }
