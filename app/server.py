@@ -3,12 +3,20 @@ import tornado.ioloop
 import tornado.web
 import json
 import redis
+from json import JSONEncoder
 from tornado import websocket
 
 r = redis.StrictRedis(host='localhost', port=6379, db=10)
 session_id = 1234
 ACTIVE_GAMES = {}
 CONNECTION_MGR_LOOKUP = {}
+
+class MobEncoder():
+    def encode(self, objects):
+        dicts = []
+        for o in objects:
+            dicts.append(o.__dict__)
+        return dicts
 
 
 class EventMgr:
@@ -19,15 +27,32 @@ class EventMgr:
 
     def updatePlayer(self, request):
         self.gamePlayer.game.updatePosition(self.gamePlayer.playerIndex, request.get("player"))
-        return {"action": "UPDATE", "players": self.gamePlayer.game.getPlayerPositions() }
+        return {
+            "action": "UPDATE",
+            "players": self.gamePlayer.game.getPlayerPositions(),
+            "mobs": MobEncoder().encode(self.gamePlayer.game.mobs)
+        }
 
     def runTrigger(self, request):
         response = {"action": "runTrigger", "data": request.get("data")}
         self.gamePlayer.broadcast(response)
         return {}
 
+    def updateObject(self, request):
+        response = {"action": "updateObject", "data": request.get("data")}
+        self.gamePlayer.broadcast(response)
+        return {}
+
     def default(self, request):
         return {}
+
+class Mob:
+    def __init__(self, x, y, game_entity):
+        self.x = x
+        self.y = y
+        self.entity = game_entity
+
+
 
 class GameState:
     token = ""
@@ -43,8 +68,25 @@ class GameState:
             self.token = game_token
             self.gameID = str(game_token)
 
-        self.players = [{"token": None, "position": [0,0], "velocity": [0,0], "facing": 0}, {"token": None, "position": [150, 150], "velocity": [0,0], "facing": 0}]
+        # @todo: GamePlayers and player should be merged
         self.gamePlayers = []
+        self.players = [{"token": None, "position": [0,0], "velocity": [0,0], "facing": 0}, {"token": None, "position": [150, 150], "velocity": [0,0], "facing": 0}]
+        self.mobs = []
+
+        json_data = open('/var/www/outofphase/tilesets_json/level1.json')
+        data = json.load(json_data)
+        tile_width = data.get("tilewidth")
+        for layer in data.get("layers"):
+            if layer.get("name") == "markers":
+                marker_layer = layer
+
+        for object in marker_layer.get("objects"):
+            if object.get("properties").get("type") == "spawn.player":
+                player_index = int(object.get("properties").get("player")) - 1
+                self.players[player_index]["position"] = [object.get("x"), object.get("y")]
+            elif object.get("properties").get("type") == "spawn.mob":
+                self.mobs.append(Mob(object.get("x"), object.get("y"), object.get("properties").get("class")))
+
 
     @staticmethod
     def getGameByToken(token):
@@ -86,13 +128,15 @@ class GamePlayer:
         return self.token
 
     def broadcast(self, data):
-        #message = json.dumps([{"status": "OK", "data": { "action": "runTrigger", "data": data } }])
         message = json.dumps([{"status": "OK", "data": data }])
         for player in self.game.gamePlayers:
             if player.playerIndex != self.playerIndex:
                 print(player.playerIndex)
                 print(message)
-                player.connection.write_message(message)
+                try:
+                    player.connection.write_message(message)
+                except:
+                    pass
 
 
 
@@ -209,7 +253,13 @@ class GameClient(websocket.WebSocketHandler):
                     response['status'] = "ERROR"
                     response['message'] = "Unable to create game"
                 else:
-                    response['data'] = {"action": "INIT", "players": game.getPlayerPositions(), "gameToken": str(game_token), "playerToken": self.gamePlayer.getToken() }
+                    response['data'] = {
+                        "action": "INIT",
+                        "players": game.getPlayerPositions(),
+                        "gameToken": str(game_token),
+                        "playerToken": self.gamePlayer.getToken(),
+                        "mobs": MobEncoder().encode(self.gamePlayer.game.mobs)
+                    }
             elif request.get("action") == "joinGame":
                 print("Join game")
 
@@ -227,7 +277,13 @@ class GameClient(websocket.WebSocketHandler):
                         response['status'] = 'ERROR'
                         response['message'] = 'Unable to join game'
                     else:
-                        response['data'] = {"action": "INIT", "players": game.getPlayerPositions(), "gameToken": str(game.getToken()), "playerToken": self.gamePlayer.getToken() }
+                        response['data'] = {
+                            "action": "INIT",
+                             "players": game.getPlayerPositions(),
+                             "gameToken": str(game.getToken()),
+                             "playerToken": self.gamePlayer.getToken(),
+                             "mobs": MobEncoder().encode(self.gamePlayer.game.mobs)
+                         }
 
             elif self.gamePlayer is not None and request.get("action") in dir(self.gamePlayer.eventMgr):
                 response['status'] = 'OK'
@@ -235,7 +291,7 @@ class GameClient(websocket.WebSocketHandler):
             else:
                 response['status'] = 'ERROR'
                 response['data'] = 'INVALID STATE'
-
+            print(response)
             return response
         except ValueError as e:
             return {"error": "Bad Value"}

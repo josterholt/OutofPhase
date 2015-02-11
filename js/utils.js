@@ -60,67 +60,29 @@ function processRemoteEvents() {
     if(REMOTE_EVENTS.length > 0) {
         console.debug("Running remote events");
         console.debug(REMOTE_EVENTS);
+
         for (var i in REMOTE_EVENTS) {
-            runTrigger(REMOTE_EVENTS[i].name, REMOTE_EVENTS[i].object1, REMOTE_EVENTS[i].object2, true);
+            if(REMOTE_EVENTS[i].action == "TRIGGER") {
+                runTrigger(REMOTE_EVENTS[i].data.name, REMOTE_EVENTS[i].data.object1, REMOTE_EVENTS[i].data.object2, true);
+            } else if(REMOTE_EVENTS[i].action == "OBJECT") {
+                var data = REMOTE_EVENTS[i].data;
+                for(var i in trigger_objects.children) {
+                    if(trigger_objects.children[i].id == data.id) {
+                        var target = trigger_objects.children[i];
+                        var update = data;
+                        target.body.x = update.x;
+                        target.body.y = update.y;
+                    }
+                }
+
+            } else {
+                console.debug("Unknown remote event");
+            }
         }
         REMOTE_EVENTS = []
     }
 }
 
-var Client = function () {
-    this.triggerQueue = {}
-    this.messageQueue = [];
-    // Add trigger to queue. This will be sent next update
-    this.queueTrigger = function (name, obj1, obj2) {
-        console.debug("Queueing trigger: " + name)
-        var data = {};
-        data['name'] = name;
-
-        // Extract needed info from objects
-        data['object1'] = {
-            "target": obj1.target,
-            "group": obj1.group
-        }
-
-        data['object2'] = {
-            "target": obj2.target,
-            "group": obj2.group
-        }
-        this.triggerQueue[obj1.id + obj2.id] = {"action": "runTrigger", "data": data };
-    }
-
-    this.queueRequest = function (request) {
-        this.messageQueue.push(request);
-    }
-
-    this.sendQueueMessages = function () {
-        var finalQueue = [];
-        for(var i in this.messageQueue) {
-            finalQueue.push(this.messageQueue[i]);
-        }
-
-        for(var i in this.triggerQueue) {
-            finalQueue.push(this.triggerQueue[i]);
-        }
-
-        if(finalQueue.length > 0) {
-            this.send(finalQueue);
-        }
-
-        this.messageQueue = [];
-        this.triggerQueue = {};
-    }
-
-    this.send = function (data) {
-        if(typeof(data) != "string") {
-            var requests = JSON.stringify(data);
-        } else {
-            var requests = data;
-        }
-
-        ws.send(requests)
-    }
-}
 
 var OBJECT_UNIQUE_ID = 0;
 function createFromTiledObject(element, group, sprite_class) {
@@ -155,9 +117,12 @@ function createFromTiledObject(element, group, sprite_class) {
         sprite[key] = value;
     })
 
+    sprite.body.drag.x = 2000;
+    sprite.body.drag.y = 2000;
     if(sprite.sprite == 'trigger.barrel') {
+
         sprite.update = function () {
-            //console.debug(this.body.velocity.y)
+
         }
     }
 }
@@ -174,6 +139,36 @@ function findObjectsByType(type, map, layer) {
 }
 
 function initTargetObjects(initial) {
+    results = findObjectsByType('help', map, 'triggers');
+    results.forEach(function(element) {
+        createFromTiledObject(element, trigger_objects)
+    }, this);
+
+    results = findObjectsByType('wall', map, 'triggers');
+    results.forEach(function(element) {
+        createFromTiledObject(element, trigger_objects)
+    }, this);
+
+    results = findObjectsByType('trigger', map, 'triggers');
+    results.forEach(function(element) {
+        createFromTiledObject(element, trigger_objects)
+    }, this);
+
+    results = findObjectsByType('trigger.pressure', map, 'triggers');
+    results.forEach(function(element) {
+        createFromTiledObject(element, trigger_objects, PressureTrigger)
+    }, this);
+
+    results = findObjectsByType('trigger.object', map, 'triggers');
+    results.forEach(function(element) {
+        createFromTiledObject(element, trigger_objects)
+    }, this);
+
+    results = findObjectsByType('section', map, 'triggers');
+    results.forEach(function(element) {
+        createFromTiledObject(element, sections)
+    }, this);
+
     for(i in trigger_objects.children) {
         var obj = trigger_objects.children[i];
         if("visible_condition" in obj) {

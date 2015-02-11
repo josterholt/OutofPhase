@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="53">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="82">
  <tileset firstgid="1" name="candyshop" tilewidth="32" tileheight="32">
   <image source="../images/scene/candyshop.png" trans="ffffff" width="256" height="480"/>
   <tile id="72">
@@ -59,9 +59,12 @@
  <tileset firstgid="445" name="collide" tilewidth="32" tileheight="32">
   <image source="../images/map/collide.png" width="64" height="32"/>
  </tileset>
+ <tileset firstgid="447" name="markers" tilewidth="32" tileheight="32">
+  <image source="../images/map/markers.png" width="96" height="32"/>
+ </tileset>
  <layer name="floor" width="100" height="75">
   <data encoding="base64" compression="zlib">
-   eJzt1TEKgEAMAMEr/P+brayNHMoiM5AuVRbujrXWcTNrsHPtsWd6Zz2+oUeLHi16tOjRokeLHi16ND25rQ7v06PBe9WiR4seLZM7T4d9erTo0eL/aNGjRQ8AAAAAAAAAAAAAAAAAAAAAAAAAAAD+6ATszQVd
+   eJzt1cEJACEMAEEf13/NthARYQ9mID9fWYhrAQAAAH/xDebkHXf0aNGjRY8WPVr0aNGjRY8WPZpOdqvDe3o0uFcterTo0TLZ83S4p0eLHi3+jxY9WvQAAAAAAAAAAAAAAAAAAAAAAIC5DVQBBV0=
   </data>
  </layer>
  <layer name="wall" width="100" height="75">
@@ -69,21 +72,21 @@
    <property name="collides" value="true"/>
   </properties>
   <data encoding="base64" compression="zlib">
-   eJzt2EEKwjAUBNAcvCoaD66gQgmhTW0Ws3gP/qadVScQ+pdSymVjruVjGcxxzm3n/f1gjnP0kUUfWfSRRR9Z9JFFH1ke76md5/U7zybXZtscc6zP/95ZP5LlP/rI8NuDtLb2Jb2sfckc7vMsI9+5DuY4b+87j9LHHPrIMtJH7/+kpY853OdZ9JFlvQfpTW9fspUDAAAAAAAAAAAAAAAAAAAAAAAAAACABC+A8zqK
+   eJzt2MsKwjAQBdB+uA80/XC7UCgh5GGyGOUcmE17V72B0Nk2AAAA4FdcjrlW5jaYY8698f4xmGOOPmLRRyz6iEUfsegjFn3E8jwmFZ6n9+xZLs/mOdY4n//WWR/J8h19xPDZg+Rq+5JS1r5kDfd5LD3fOXXmmNf6zr30sYY+Yunpo/R/ktPHGu7zWPQRy3kPUprSvqSWAwAAAAAAAAAAAAAAAAAAAACAf/YCiMc6ig==
   </data>
  </layer>
  <layer name="collide" width="100" height="75">
   <data encoding="base64" compression="zlib">
-   eJzt1zsKwCAURUGz/z1lbSFFOjEf4XElM2Ajr/KAYmv39u3B0Is55uiRRY8semTRI4seWfTIokcWPeqcZ9g7x2u/t0azzNFjPe6rLHpk0WNNemTRI4seNbwfWfTIoked0T/8ywIAAAAAAAAAAAAAAAAAAAAAAAAAAPirAzaiOXQ=
+   eJzt1zEKwCAQRUFz/zvlbCFFOrFQWb5hBrYRKx8otgYAAAD8yX3t3ccaPbLokUWPLHpk0SOLHln0yKJHnfcMe+f4rfdmtJc1epzHfZVFjyx6nEmPLHpk0aOG9yOLHln0qDP6h88MAAAAAAAAAAAAAAAAAAAAAAB7PWKlOXQ=
   </data>
  </layer>
  <layer name="object" width="100" height="75">
   <data encoding="base64" compression="zlib">
-   eJztwzENAAAMA6B6n/G9ldADEhIAAIBdVwEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAfQ/eyAGK
+   eJztw7ENAAAIA6D+7uOu3R2FhAQAAAAAAADgbioAAAAAAAAAAAAAAAAAAAAAAAAAAADw1wKjWAGK
   </data>
  </layer>
  <objectgroup name="triggers">
-  <object id="13" name="wall1" type="wall" gid="125" x="64" y="384">
+  <object id="53" name="wall1" type="wall" gid="125" x="384" y="704">
    <properties>
     <property name="group" value="wall1"/>
     <property name="solid" value="true"/>
@@ -91,7 +94,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="15" name="wall1" type="wall" gid="125" x="96" y="384">
+  <object id="54" name="wall1" type="wall" gid="125" x="416" y="704">
    <properties>
     <property name="group" value="wall1"/>
     <property name="solid" value="true"/>
@@ -99,7 +102,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="16" name="wall1" type="wall" gid="125" x="128" y="384">
+  <object id="55" name="wall1" type="wall" gid="125" x="448" y="704">
    <properties>
     <property name="group" value="wall1"/>
     <property name="solid" value="true"/>
@@ -107,7 +110,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="17" name="wall1" type="wall" gid="125" x="156" y="384">
+  <object id="56" name="wall1" type="wall" gid="125" x="476" y="704">
    <properties>
     <property name="group" value="wall1"/>
     <property name="solid" value="true"/>
@@ -115,7 +118,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="18" name="wall1" type="wall" gid="125" x="186" y="384">
+  <object id="57" name="wall1" type="wall" gid="125" x="506" y="704">
    <properties>
     <property name="groupID" value="wall1"/>
     <property name="solid" value="true"/>
@@ -123,7 +126,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="19" name="trigger1" type="trigger" gid="11" x="64" y="256">
+  <object id="58" name="trigger1" type="trigger" gid="11" x="384" y="576">
    <properties>
     <property name="callback" value="openWall"/>
     <property name="group" value="trigger1"/>
@@ -134,13 +137,13 @@
     <property name="type" value="trigger.pressure"/>
    </properties>
   </object>
-  <object id="24" name="help3" type="trigger.help" gid="12" x="447" y="65">
+  <object id="59" name="help3" type="trigger.help" gid="12" x="767" y="385">
    <properties>
     <property name="sprite" value="trigger.help"/>
     <property name="type" value="help"/>
    </properties>
   </object>
-  <object id="25" name="trigger1" type="trigger" gid="11" x="161" y="255">
+  <object id="60" name="trigger1" type="trigger" gid="11" x="481" y="575">
    <properties>
     <property name="callback" value="openWall"/>
     <property name="group" value="trigger1"/>
@@ -151,7 +154,7 @@
     <property name="type" value="trigger.pressure"/>
    </properties>
   </object>
-  <object id="29" name="wall2" type="wall" gid="127" x="320" y="481">
+  <object id="61" name="wall2" type="wall" gid="127" x="640" y="801">
    <properties>
     <property name="group" value="wall2"/>
     <property name="solid" value="true"/>
@@ -159,7 +162,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="33" name="wall2" type="wall" gid="127" x="320" y="514">
+  <object id="62" name="wall2" type="wall" gid="127" x="640" y="834">
    <properties>
     <property name="group" value="wall2"/>
     <property name="solid" value="true"/>
@@ -167,7 +170,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="34" name="wall2" type="wall" gid="127" x="320" y="547">
+  <object id="63" name="wall2" type="wall" gid="127" x="640" y="867">
    <properties>
     <property name="group" value="wall2"/>
     <property name="solid" value="true"/>
@@ -175,7 +178,7 @@
     <property name="type" value="wall"/>
    </properties>
   </object>
-  <object id="35" name="trigger2" type="trigger" gid="131" x="144" y="640">
+  <object id="64" name="trigger2" type="trigger" gid="131" x="464" y="960">
    <properties>
     <property name="action" value="KILL"/>
     <property name="sprite" value="wall.bottom"/>
@@ -183,7 +186,7 @@
     <property name="type" value="trigger"/>
    </properties>
   </object>
-  <object id="36" name="trigger3" type="trigger" gid="11" x="448" y="614">
+  <object id="65" name="trigger3" type="trigger" gid="11" x="768" y="934">
    <properties>
     <property name="action" value="KILL"/>
     <property name="group" value="trigger3"/>
@@ -193,7 +196,7 @@
     <property name="visible_condition" value="PLAYER1"/>
    </properties>
   </object>
-  <object id="37" name="trigger3" type="trigger" gid="11" x="449" y="416">
+  <object id="66" name="trigger3" type="trigger" gid="11" x="769" y="736">
    <properties>
     <property name="callback" value="KILL"/>
     <property name="group" value="trigger3"/>
@@ -203,12 +206,12 @@
     <property name="visible_condition" value="PLAYER2"/>
    </properties>
   </object>
-  <object id="38" name="room3" type="section" x="324" y="360" width="280" height="262">
+  <object id="67" name="room3" type="section" x="644" y="680" width="280" height="262">
    <properties>
     <property name="type" value="section"/>
    </properties>
   </object>
-  <object id="39" name="flowers2" gid="147" x="15" y="407">
+  <object id="68" name="flowers2" gid="147" x="335" y="727">
    <properties>
     <property name="callback" value="flowerCount"/>
     <property name="solid" value="true"/>
@@ -216,7 +219,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="40" name="flowers2" gid="147" x="234" y="405">
+  <object id="69" name="flowers2" gid="147" x="554" y="725">
    <properties>
     <property name="callback" value="flowerCount"/>
     <property name="solid" value="true"/>
@@ -224,7 +227,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="41" name="flowers2" gid="147" x="19" y="617">
+  <object id="70" name="flowers2" gid="147" x="339" y="937">
    <properties>
     <property name="callback" value="flowerCount"/>
     <property name="solid" value="true"/>
@@ -232,7 +235,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="42" name="flowers2" gid="147" x="239" y="620">
+  <object id="71" name="flowers2" gid="147" x="559" y="940">
    <properties>
     <property name="callback" value="flowerCount"/>
     <property name="solid" value="true"/>
@@ -241,7 +244,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="43" name="flowers1" gid="147" x="26" y="57">
+  <object id="72" name="flowers1" gid="147" x="346" y="377">
    <properties>
     <property name="callback" value="flowerCount"/>
     <property name="solid" value="true"/>
@@ -249,7 +252,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="44" name="flowers1" gid="147" x="230" y="57">
+  <object id="73" name="flowers1" gid="147" x="550" y="377">
    <properties>
     <property name="callback" value="flowerCount"/>
     <property name="solid" value="true"/>
@@ -257,7 +260,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="46" name="flowers3" gid="147" x="448" y="513">
+  <object id="74" name="flowers3" gid="147" x="768" y="833">
    <properties>
     <property name="callback" value="flowerCheck"/>
     <property name="solid" value="true"/>
@@ -265,7 +268,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="47" name="flowers4" gid="147" x="450" y="238">
+  <object id="75" name="flowers4" gid="147" x="770" y="558">
    <properties>
     <property name="callback" value="room4SwapTrigger"/>
     <property name="condition" value="PLAYER1"/>
@@ -274,7 +277,7 @@
     <property name="type" value="trigger.flowers"/>
    </properties>
   </object>
-  <object id="49" name="barrel" gid="73" x="189" y="510">
+  <object id="76" name="barrel" gid="73" x="509" y="830">
    <properties>
     <property name="group" value="barrel1"/>
     <property name="pushable" value="true"/>
@@ -283,13 +286,34 @@
     <property name="type" value="trigger.object"/>
    </properties>
   </object>
-  <object id="52" name="trigger1" type="trigger" gid="11" x="96" y="512">
+  <object id="77" name="trigger1" type="trigger" gid="11" x="416" y="832">
    <properties>
     <property name="callback" value="pressurePlate"/>
     <property name="condition" value="barrel1"/>
     <property name="sprite" value="trigger.trigger1"/>
     <property name="target" value="wall2"/>
     <property name="type" value="trigger.pressure"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup name="markers">
+  <object id="78" gid="448" x="385" y="416">
+   <properties>
+    <property name="player" value="1"/>
+    <property name="type" value="spawn.player"/>
+   </properties>
+  </object>
+  <object id="79" gid="448" x="507" y="415">
+   <properties>
+    <property name="player" value="2"/>
+    <property name="type" value="spawn.player"/>
+   </properties>
+  </object>
+  <object id="81" gid="449" x="362" y="888">
+   <properties>
+    <property name="class" value="Guardian"/>
+    <property name="hostile" value="true"/>
+    <property name="type" value="spawn.mob"/>
    </properties>
   </object>
  </objectgroup>

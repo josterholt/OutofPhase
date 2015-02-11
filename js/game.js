@@ -9,6 +9,7 @@ var speed = 100;
 var PLAYERS = [];
 var CURRENT_PLAYER_INDEX = 0;
 var CURRENT_PLAYER;
+var foo = 0;
 
 var WebFontConfig = {
     active: function () {
@@ -44,6 +45,8 @@ function preload () {
     game.load.spritesheet('player1', 'images/characters/tremel.png', 32, 48);
     game.load.spritesheet('player2', 'images/characters/xmasgirl1.png', 32, 48);
 
+    game.load.spritesheet('mob.guardian', 'images/mobs/Elemental_Earth/$Monster_Elemental_Earth_FullFrame.png', 100, 100);
+
     // Trigger image assets
     game.load.image('empty', 'images/full.png');
     game.load.image('trigger.help', 'images/triggers/letter.png');
@@ -65,6 +68,8 @@ function preload () {
     // Sounds
     game.load.audio('attack1', 'sounds/attack/knife_attack1.mp3');
     game.load.audio('attack1', 'sounds/attack/knife_attack2.mp3');
+
+
 }
 
 function create () {
@@ -72,10 +77,13 @@ function create () {
     game.stage.backgroundColor = '#000000';
     game.stage.disableVisibilityChange = true;
 
+
     fx = game.add.audio('attack1');
     fx.allowMultiple = true;
 
     map = game.add.tilemap('level1');
+    //map.resizeWorld();
+    game.world.setBounds(0,0, map.width * map.tileWidth, map.height * map.tileHeight);
 
     map.addTilesetImage('candyshop', 'candyshop');
 
@@ -96,68 +104,45 @@ function create () {
     sections = game.add.group();
     sections.enableBody = true;
 
-    results = findObjectsByType('help', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
-
-    results = findObjectsByType('wall', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
-
-    results = findObjectsByType('trigger', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
-
-    results = findObjectsByType('trigger.pressure', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects, PressureTrigger)
-    }, this);
-
-    results = findObjectsByType('trigger.object', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
-
-    results = findObjectsByType('section', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, sections)
-    }, this);
-
-    /**
-     * Add player
-     */
     PLAYERS[0] = new Player(1, "player1", SERVER_STATE.data.players[0].position[0], SERVER_STATE.data.players[0].position[1]);
     PLAYERS[1] = new Player(2, "player2", SERVER_STATE.data.players[1].position[0], SERVER_STATE.data.players[1].position[1]);
+
+    for(var i in SERVER_STATE.data.mobs) {
+        var mob = SERVER_STATE.data.mobs[i];
+        console.debug(mob);
+        MOB = new Guardian(mob.x, mob.y, "mob.guardian");
+        game.add.existing(MOB);
+    }
 
     if(CURRENT_PLAYER_INDEX == undefined) {
         CURRENT_PLAYER_INDEX = 0;
     }
     CURRENT_PLAYER = PLAYERS[CURRENT_PLAYER_INDEX];
-    //CURRENT_PLAYER_HITBOX = PLAYER_HITBOXES[CURRENT_PLAYER_INDEX];
 
     initTargetObjects(true);
+
+    /**
+     * Add player
+     */
+    game.add.existing(PLAYERS[0]);
+    game.add.existing(PLAYERS[1]);
+
+
 
     /**
      * Wall added here so it overlaps players
      */
     map.addTilesetImage('candyshopwall', 'candyshopwall');
     wall_layer = map.createLayer('wall');
-    //map.setCollisionBetween(100, 199, true, 'wall');
-
-
 
     /**
      * Remaining initialization
      */
-     //game.physics.enable(player1, Phaser.Physics.ARCADE);
     game.camera.follow(CURRENT_PLAYER, Phaser.Camera.FOLLOW_TOPDOWN_TIGHT);
 
     UI = new _ui(game);
     UI.init();
-    UI.show("Use arrow keys to move, spacebar to interact, tab to change character.");
+    UI.show("Use arrow keys to move, and spacebar to interact.");
     UI.isSticky = true;
 }
 
@@ -167,28 +152,19 @@ function update() {
         UI.hide();
     }
 
+    foo += 1;
     /**
      * Dealing with weird problem where update within sprite doesn't work
      */
     CURRENT_PLAYER.body.velocity.x = 0;
     CURRENT_PLAYER.body.velocity.y = 0;
+
+
     //console.debug(CURRENT_PLAYER.body.velocity.x + "/" + CURRENT_PLAYER.body.velocity.y)
 
     processRemoteEvents();
 
     game.physics.arcade.collide(PLAYERS[0], PLAYERS[1]);
-
-
-    game.physics.arcade.collide(CURRENT_PLAYER, trigger_objects, function (obj1, obj2) {
-
-        },
-        function (obj1, obj2) {
-            if(obj2.solid  || obj1.key == "player1" && obj2.solid == "player1" || obj1.key == "player2" && obj2.solid == "player2") {
-                return true;
-            }
-            return false;
-        });
-
 
     game.physics.arcade.overlap(trigger_objects, trigger_objects, function (obj1, obj2) {
         // Make sure these aren't the same object, and it has a condition

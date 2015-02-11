@@ -14,6 +14,9 @@
     <script src="js/triggers.js"></script>
     <script src="js/player.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/client.js"></script>
+    <script src="js/attacks.js"></script>
+    <script src="js/mobs.js"></script>
     <script src="js/game.js"></script>
     <script>
     var PLAYER_INDX;
@@ -120,6 +123,7 @@
                             SERVER_STATE.status = "FRESH";
                             SERVER_STATE.data.players[0] = response.data.players[0];
                             SERVER_STATE.data.players[1] = response.data.players[1];
+                            SERVER_STATE.data.mobs = response.data.mobs;
                             startGame();
                             window.setInterval(com_update, 100);
                         } else if (action == "UPDATE") {
@@ -130,7 +134,9 @@
                             }
                         } else if (action == "runTrigger") {
                             console.debug("Adding remote event");
-                            REMOTE_EVENTS.push(response.data.data)
+                            REMOTE_EVENTS.push({"action": "TRIGGER", "data": response.data.data});
+                        } else if(action == "updateObject") {
+                            REMOTE_EVENTS.push({"action": "OBJECT", "data": response.data.data});
                         } else {
                             console.debug("Bad message, discarding")
                             console.debug(response)

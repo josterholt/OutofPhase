@@ -20,15 +20,12 @@ function Player(player_num, player_sprite, x, y) {
     this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     this.tabKey = game.input.keyboard.addKey(Phaser.Keyboard.TAB);
     game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.TAB]);
-
-    game.add.existing(this);
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
 Player.prototype.update = function () {
-
     if(this.playerIndex == CURRENT_PLAYER_INDEX) {
         this.body.velocity.x = 0;
         this.body.velocity.y = 0;
@@ -67,7 +64,7 @@ Player.prototype.update = function () {
             this.body.velocity.y = 0;
             this.body.velocity.x = 0;
             this.animations.stop(null, 0);
-            this.body.immovable = true;
+
 
             UI.clearSticky();
             if (this.body.facing == Phaser.RIGHT) {
@@ -96,20 +93,22 @@ Player.prototype.update = function () {
                 this.hitbox.body.rotation = -90;
             }
 
-            fx.play();
+            //fx.play();
+            // this.body.immovable = true;
+            //this.hitbox.visible = true;
+            //s = game.add.tween(this.hitbox)
+            //this.hitbox.alpha = 1;
+            //s.to({ alpha: 0 }, 500, Phaser.Easing.Linear.None, true)
+            //s.onComplete.add(function () {
+            //    this.body.immovable = false;
+            //}, this);
+            //
+            //game.physics.arcade.overlap(this.hitbox, trigger_objects, function (obj1, obj2) {
+            //    console.debug("Hit");
+            //    processTrigger(obj1, obj2);
+            //});
 
-            this.hitbox.visible = true;
-            s = game.add.tween(this.hitbox)
-            this.hitbox.alpha = 1;
-            s.to({ alpha: 0 }, 500, Phaser.Easing.Linear.None, true)
-            s.onComplete.add(function () {
-                this.body.immovable = false;
-            }, this);
-
-            game.physics.arcade.overlap(this.hitbox, trigger_objects, function (obj1, obj2) {
-                console.debug("Hit");
-                processTrigger(obj1, obj2);
-            });
+            probe(this)
         }
     } else {
         var player_indx = this.playerIndex;
@@ -120,8 +119,8 @@ Player.prototype.update = function () {
             PLAYERS[player_indx].body.velocity.y = SERVER_STATE.data.players[player_indx].velocity[1];
             PLAYERS[player_indx].body.facing = SERVER_STATE.data.players[player_indx].facing;
 
-            var is_moving = !(PLAYERS[player_indx].body.velocity.x == 0 && PLAYERS[player_indx].body.velocity.y == 0);
-            if(is_moving) {
+            PLAYERS[player_indx].isMoving = !(PLAYERS[player_indx].body.velocity.x == 0 && PLAYERS[player_indx].body.velocity.y == 0);
+            if(PLAYERS[player_indx].isMoving) {
                 if(PLAYERS[player_indx].body.facing == Phaser.LEFT) {
                     PLAYERS[player_indx].animations.play('walk_left', 5, true);
                 } else if(PLAYERS[player_indx].body.facing == Phaser.RIGHT) {
@@ -133,12 +132,28 @@ Player.prototype.update = function () {
                 }
             }
 
-            if(!is_moving) {
+            if(!PLAYERS[player_indx].isMoving) {
                 PLAYERS[player_indx].animations.stop(null, 0);
             }
             SERVER_STATE.status = "OLD";
+        } else if( player_indx in SERVER_STATE.data.players && SERVER_STATE.status == "OLD") {
+            //this.body.velocity.x = SERVER_STATE.data.players[player_indx].velocity[0];
+            //this.body.velocity.y = SERVER_STATE.data.players[player_indx].velocity[1];
         }
     }
+
+    game.physics.arcade.collide(this, trigger_objects, function (obj1, obj2) {
+            console.debug(obj2.body.x + "/" + obj2.body.y);
+            if(this.playerIndex == CURRENT_PLAYER_INDEX)
+            CLIENT.queueObjectEvent(obj2);
+            return true;
+        },
+        function (obj1, obj2) {
+            if(obj2.solid  || obj1.key == "player1" && obj2.solid == "player1" || obj1.key == "player2" && obj2.solid == "player2") {
+                return true;
+            }
+            return false;
+        }, this);
 
     game.physics.arcade.collide(this, collide_layer);
 
@@ -163,7 +178,7 @@ Player.prototype.initPlayerHitBox = function (player_num) {
     player_hitbox.addChild(graphic);
 
     player_hitbox.group = "PLAYER" + player_num;
-    player_hitbox.alpha = 1;
+    player_hitbox.alpha = 0;
     game.physics.enable(player_hitbox, Phaser.Physics.ARCADE);
     player_hitbox.body.allowRotation = true;
 
