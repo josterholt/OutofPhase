@@ -8,6 +8,11 @@
             overflow:hidden;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.0/css/foundation.min.css" />
+    <link rel="stylesheet" href="css/main.css" />
+
+    <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.0/js/foundation.min.js"></script>
 
     <script src="js/phaser.js"></script>
     <script src="js/objects.js"></script>
@@ -17,7 +22,11 @@
     <script src="js/client.js"></script>
     <script src="js/attacks.js"></script>
     <script src="js/mobs.js"></script>
+    <script src="js/levels.js"></script>
     <script src="js/game.js"></script>
+    <script src="js/forms.js"></script>
+
+
     <script>
     var PLAYER_INDX;
     var PLAYER_NUM;
@@ -63,94 +72,83 @@
     }
 
     window.onload = function() {
-        ws = new WebSocket('ws://ubuntu:8888/websocket', ['soap', 'xmpp', 'binary']);
-
-        ws.onopen = function () {
-            if(PLAYER_NUM == 1) {
-                console.debug("Create game...");
-                if(localStorage['game_token'] != null) {
-                    request = JSON.stringify([{ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  }])
-                } else {
-                    request = JSON.stringify([{ "action": "createGame" }])
-                }
-            } else {
-                if(localStorage['game_token'] == null) {
-                    localStorage['game_token']  = prompt("Enter token")
-                }
-
-                if(localStorage['game_token'] != null) {
-                    request = JSON.stringify([{ "action": "joinGame", "gameToken": localStorage['game_token'], "playerToken": localStorage['player_token']  }])
-                }
-            }
-            isConnected = true;
-            CLIENT.send(request)
-        }
-
-        ws.onerror = function (error) {
-            console.debug('Websocket Error ' + error);
-        }
-
-        ws.onmessage = function (e) {
-            if("data" in e) {
-                var responses = JSON.parse(e.data);
-
-                for(i in responses) {
-                    var response = responses[i];
-
-                    var action = null;
-                    if(response.status != "OK") {
-                        if(response.message == "Token is invalid" && PLAYER_NUM == 1) {
-                            request = JSON.stringify([{ "action": "createGame" }])
-                            CLIENT.send(request)
-                        }
-                    } else {
-
-                        if ("data" in response && response.data != null && response.data != false && "action" in response.data) {
-                            action = response.data.action;
-                        }
-
-                       //console.debug(action);
-                        if (action == "INIT") {
-                            if ("data" in response && response.data != null && response.data != false && "gameToken" in response.data) {
-                                localStorage['game_token'] = response.data.gameToken;
-                                prompt("Game Token", response.data.gameToken)
-                            }
-
-                            if (response.data != null && "playerToken" in response.data) {
-                                localStorage['player_token'] = response.data.playerToken;
-                            }
-
-                            SERVER_STATE.status = "FRESH";
-                            SERVER_STATE.data.players[0] = response.data.players[0];
-                            SERVER_STATE.data.players[1] = response.data.players[1];
-                            SERVER_STATE.data.mobs = response.data.mobs;
-                            startGame();
-                            window.setInterval(com_update, 100);
-                        } else if (action == "UPDATE") {
-                            if ("data" in response && response.data != null) {
-                                SERVER_STATE.status = "FRESH";
-                                SERVER_STATE.data.players[0] = response.data.players[0];
-                                SERVER_STATE.data.players[1] = response.data.players[1];
-                            }
-                        } else if (action == "runTrigger") {
-                            console.debug("Adding remote event");
-                            REMOTE_EVENTS.push({"action": "TRIGGER", "data": response.data.data});
-                        } else if(action == "updateObject") {
-                            REMOTE_EVENTS.push({"action": "OBJECT", "data": response.data.data});
-                        } else {
-                            console.debug("Bad message, discarding")
-                            console.debug(response)
-                            console.debug(response.data)
-                        }
-                    }
-                }
-            }
+        var user = null;
+        if (!user) {
+            $('#loginModal').foundation('reveal', 'open');
+        } else {
         }
     }
-
     </script>
 </head>
 <body>
+    <div id="loginModal" class="reveal-modal remove-whitespace" data-reveal  data-options="close_on_background_click:false">
+        <div class="row">
+            <div class="large-6 columns auth-plain">
+                <div class="signup-panel left-solid">
+                    <p class="welcome">Log In</p>
+                    <form id="login-form">
+                        <div class="row collapse">
+                            <div class="small-12  columns">
+                                <input type="text" name="username" placeholder="username">
+                            </div>
+                        </div>
+                        <div class="row collapse">
+                            <div class="small-12 columns ">
+                                <input type="password" name="password" placeholder="password">
+                            </div>
+                        </div>
+                    </form>
+                    <ul class="small-block-grid-2">
+                        <li><a href="#" id="login-btn" class="button">Log In </a></li>
+                        <li><a href="#" data-reveal-id="registerModal" class="button secondary register">Register</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <a class="close-reveal-modal">&#215;</a>
+    </div>
 
+    <div id="registerModal" class="reveal-modal remove-whitespace" data-reveal data-options="close_on_background_click:false">
+        <div class="row">
+            <div class="large-6 columns auth-plain">
+                <div class="signup-panel left-solid">
+                    <p class="welcome">Register</p>
+                    <form id="registration-form">
+                        <div class="row collapse">
+                            <div class="small-12  columns">
+                                <input type="text" name="username" placeholder="username">
+                            </div>
+                        </div>
+                        <div class="row collapse">
+                            <div class="small-12 columns ">
+                                <input type="password" name="password" placeholder="password">
+                            </div>
+                        </div>
+                    </form>
+                    <ul class="small-block-grid-2">
+                        <li><a href="#" id="register-btn" class="button">Register</a></li>
+                        <li><a href="#" data-reveal-id="loginModal"  class="button secondary log-in">Log In </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <a class="close-reveal-modal">&#215;</a>
+    </div>
+
+    <div id="gamesModal" class="reveal-modal remove-whitespace" data-reveal data-options="close_on_background_click:false">
+        <div class="row">
+            <div class="large-6 columns auth-plain">
+                <div class="signup-panel left-solid">
+                    <p class="welcome">Choose a Game</p>
+                    <ul class="no-bullet" id="game-list"></ul>
+                    <a href="#" onClick="initGame(null)">New Game</a>
+                </div>
+            </div>
+        </div>
+        <a class="close-reveal-modal">&#215;</a>
+    </div>
+    <script>
+        $(document).foundation();
+    </script>
 </body>
 </html>

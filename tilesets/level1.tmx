@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="82">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="75" tilewidth="32" tileheight="32" nextobjectid="110">
  <tileset firstgid="1" name="candyshop" tilewidth="32" tileheight="32">
   <image source="../images/scene/candyshop.png" trans="ffffff" width="256" height="480"/>
   <tile id="72">
@@ -77,7 +77,7 @@
  </layer>
  <layer name="collide" width="100" height="75">
   <data encoding="base64" compression="zlib">
-   eJzt1zEKwCAQRUFz/zvlbCFFOrFQWb5hBrYRKx8otgYAAAD8yX3t3ccaPbLokUWPLHpk0SOLHln0yKJHnfcMe+f4rfdmtJc1epzHfZVFjyx6nEmPLHpk0aOG9yOLHln0qDP6h88MAAAAAAAAAAAAAAAAAAAAAAB7PWKlOXQ=
+   eJzt2jsKwCAQQEFz/zvlbLmAhHy2eMUM2Fn5QFlwLQAAANg7j/nFd0/Pb3ofe3q06NGiR4seLXq06NGiR4seLXdz9ZsZ3Hw+Q48W91WLHi16tEyfnx7/6NGiR4v3o0WPFj1a/GcAAAAAAAAAAAAAAAAAAAAAAOi7AG6PWMo=
   </data>
  </layer>
  <layer name="object" width="100" height="75">
@@ -309,7 +309,7 @@
     <property name="type" value="spawn.player"/>
    </properties>
   </object>
-  <object id="81" gid="449" x="362" y="888">
+  <object id="81" gid="449" x="431" y="479">
    <properties>
     <property name="class" value="Guardian"/>
     <property name="hostile" value="true"/>

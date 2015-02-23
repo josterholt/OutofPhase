@@ -1,310 +1,128 @@
-import uuid
-import tornado.ioloop
+import hashlib
+import string
+import random
+import os
+from settings import config
+import tornado.ioloop, tornado.httpserver
 import tornado.web
-import json
 import redis
-from json import JSONEncoder
-from tornado import websocket
+from utils.mysql import DB
 
-r = redis.StrictRedis(host='localhost', port=6379, db=10)
-session_id = 1234
-ACTIVE_GAMES = {}
-CONNECTION_MGR_LOOKUP = {}
+from pycket.session import SessionMixin
 
-class MobEncoder():
-    def encode(self, objects):
-        dicts = []
-        for o in objects:
-            dicts.append(o.__dict__)
-        return dicts
+from system.client import GameClient
 
 
-class EventMgr:
-    gamePlayer = None
+r = redis.StrictRedis(host='localhost', port=6379, db=5)
 
-    def __init__(self, gamePlayer):
-        self.gamePlayer = gamePlayer
+class RegisterHandler(tornado.web.RequestHandler):
+    def post(self):
+        request = tornado.escape.json_decode(self.request.body)
+        username = request.get("username")
+        password = request.get("password")
 
-    def updatePlayer(self, request):
-        self.gamePlayer.game.updatePosition(self.gamePlayer.playerIndex, request.get("player"))
-        return {
-            "action": "UPDATE",
-            "players": self.gamePlayer.game.getPlayerPositions(),
-            "mobs": MobEncoder().encode(self.gamePlayer.game.mobs)
+
+        m = hashlib.md5()
+        m.update(password.encode(encoding='UTF-8'))
+        encrypted_password = m.hexdigest()
+
+        DB.fetchOne(("SELECT COUNT(*) FROM users WHERE username = %(username)s AND password = %(password)s"), {"username": username, "password": encrypted_password})
+
+        if row[0] > 0:
+            self.write({"status": "ERROR", "message": "Account with username already exists"})
+        else:
+            code = ''.join(random.choice(string.ascii_uppercase) for _ in range(6))
+            #cursor.execute("INSERT INTO users (username, password, code) VALUES(%(username)s, %(password)s, %(code)s)", {"username": username, "password": encrypted_password, "code": code});
+            DB.execute("INSERT INTO users (username, password, code) VALUES(%(username)s, %(password)s, %(code)s)", {"username": username, "password": encrypted_password, "code": code})
+            self.write({"status": "SUCCESS"})
+
+
+
+class RegisterConfirmHandler(tornado.web.RequestHandler, SessionMixin):
+    def get(self):
+        (code, ) = self.get_arguments("code")
+        if code != "":
+            self.write("Invalid request")
+
+        row = DB.fetchone("SELECT id FROM users WHERE code = %s", code)
+
+        id = row[0]
+
+        self.write("foo")
+
+class LoginHandler(tornado.web.RequestHandler, SessionMixin):
+    def post(self):
+        if self.request.body:
+            request = tornado.escape.json_decode(self.request.body.decode("utf-8"))
+
+        username = request.get("username")
+        password = request.get("password")
+
+        m = hashlib.md5()
+        m.update(password.encode(encoding='UTF-8'))
+        encrypted_password = m.hexdigest()
+
+        row = DB.fetchOne("SELECT id FROM users WHERE username = %(username)s AND password = %(password)s", {"username": username, "password": encrypted_password})
+        self.session.set('userID', row[0])
+
+        response = {"status": "SUCCESS"}
+        self.write(response)
+
+class GameListHandler(tornado.web.RequestHandler, SessionMixin):
+    def get(self):
+        userid = self.session.get("userID")
+        if userid is None:
+            print("Invalid user")
+            self.write({"error": "Invalid userid"})
+            return
+
+        rows = DB.fetchAll("SELECT gameinstances.token, u1.display_name, u2.display_name " \
+            "FROM gameinstances " \
+            "JOIN users u1 ON u1.id = gameinstances.user1 " \
+            "LEFT JOIN users u2 ON u2.id = gameinstances.user2 " \
+            "WHERE u1.id = %(userid)s OR u2.id = %(userid)s", {"userid": userid})
+
+        games = []
+        for game in rows:
+            games.append({"gameToken": game[0], "user1": game[1], "user2": game[2]})
+
+        self.write({"games": games})
+
+
+class Application(tornado.web.Application):
+    def __init__(self):
+        handlers = [
+        (r"/rest/login", LoginHandler),
+        (r"/rest/register", RegisterHandler),
+        (r"/rest/games", GameListHandler),
+        (r"/confirm", RegisterConfirmHandler),
+        (r"/websocket", GameClient),
+        (r"/", tornado.web.RedirectHandler, {"url": "/index.html"}),
+        (r"/(.*)", tornado.web.StaticFileHandler, dict(path=os.path.join(os.path.dirname(__file__), "../"))),
+
+        ]
+
+        settings = dict(debug = True,
+                        autoreload = True,
+                        cookie_secret = ''.join(random.choice(string.ascii_uppercase) for _ in range(128)))
+
+        pycket_settings =  {
+            'engine': 'redis',
+            'storage': {
+                'host': 'localhost',
+                'port': 6379,
+                'db_sessions': 10,
+                'db_notifications': 11,
+                'max_connections': 2 ** 31,
+            },
+            'cookies': {
+                'expires_days': 120,
+            },
         }
-
-    def runTrigger(self, request):
-        response = {"action": "runTrigger", "data": request.get("data")}
-        self.gamePlayer.broadcast(response)
-        return {}
-
-    def updateObject(self, request):
-        response = {"action": "updateObject", "data": request.get("data")}
-        self.gamePlayer.broadcast(response)
-        return {}
-
-    def default(self, request):
-        return {}
-
-class Mob:
-    def __init__(self, x, y, game_entity):
-        self.x = x
-        self.y = y
-        self.entity = game_entity
-
-
-
-class GameState:
-    token = ""
-    gameID = None
-    events = None
-
-    def __init__(self, game_token):
-        print("Setting game id")
-        if id is None:
-            self.token = str(uuid.uuid4())
-            self.gameID = str(self.token)
-        else:
-            self.token = game_token
-            self.gameID = str(game_token)
-
-        # @todo: GamePlayers and player should be merged
-        self.gamePlayers = []
-        self.players = [{"token": None, "position": [0,0], "velocity": [0,0], "facing": 0}, {"token": None, "position": [150, 150], "velocity": [0,0], "facing": 0}]
-        self.mobs = []
-
-        json_data = open('/var/www/outofphase/tilesets_json/level1.json')
-        data = json.load(json_data)
-        tile_width = data.get("tilewidth")
-        for layer in data.get("layers"):
-            if layer.get("name") == "markers":
-                marker_layer = layer
-
-        for object in marker_layer.get("objects"):
-            if object.get("properties").get("type") == "spawn.player":
-                player_index = int(object.get("properties").get("player")) - 1
-                self.players[player_index]["position"] = [object.get("x"), object.get("y")]
-            elif object.get("properties").get("type") == "spawn.mob":
-                self.mobs.append(Mob(object.get("x"), object.get("y"), object.get("properties").get("class")))
-
-
-    @staticmethod
-    def getGameByToken(token):
-        gameID = str(token)
-        if gameID not in ACTIVE_GAMES:
-            return None
-        else:
-            return ACTIVE_GAMES[gameID]
-
-    def addPlayer(self, player_index, player):
-        self.gamePlayers.insert(player_index, player)
-
-    def getStateUpdates(self):
-        return {"action": "UPDATE", "players": self.getPlayerPositions() }
-
-    def getPlayerPositions(self):
-        return self.players
-
-    def getToken(self):
-        return self.token
-
-    def updatePosition(self, indx, player):
-        self.players[indx]['position'] = player.get("position")
-        self.players[indx]['velocity'] = player.get("velocity")
-        self.players[indx]['facing'] = player.get("facing")
-
-
-
-class GamePlayer:
-    def __init__(self, connection, game, player_index, player_token):
-        self.connection = connection
-        self.game = game
-        self.eventMgr = EventMgr(self)
-        self.playerIndex = player_index
-        self.token = player_token
-        print("Player Index: " + str(self.playerIndex))
-
-    def getToken(self):
-        return self.token
-
-    def broadcast(self, data):
-        message = json.dumps([{"status": "OK", "data": data }])
-        for player in self.game.gamePlayers:
-            if player.playerIndex != self.playerIndex:
-                print(player.playerIndex)
-                print(message)
-                try:
-                    player.connection.write_message(message)
-                except:
-                    pass
-
-
-
-# Add session to keep track of player
-# Store data in Memcache
-class GameClient(websocket.WebSocketHandler):
-    clients = []
-    em = None
-    id = None
-    #game = None
-    #gamePlayer = None
-
-    def check_origin(self, origin):
-        return True
-
-    def select_subprotocol(self, subprotocols):
-        return "binary"
-
-    def open(self):
-        self.game = None
-        self.gamePlayer = None
-        self.id = uuid.uuid4()
-        self.clients.append(self)
-        print("WebSocket opened")
-
-    def createGame(self, request):
-        if "gameID" in request:
-            print("Request has game ID")
-            self.game = ACTIVE_GAMES.get(request.get("gameID"))
-        else:
-            print("New game")
-            self.gamePlayer = None
-            self.game = GameState(uuid.uuid4())
-
-
-        ACTIVE_GAMES[self.game.gameID] = self.game
-        return self.game.getToken()
-
-    def joinGame(self, game_token, player_token):
-        print("Looking up game with token: " + str(game_token))
-        game = GameState.getGameByToken(game_token)
-
-        # Scenarios:
-        # - Completely fresh game
-        # - Continued game
-        player_index = None
-
-        if player_token is not None:
-            if game.players[0].get("token") == player_token:
-                player_index = 0
-                self.gamePlayer = GamePlayer(self, game, 0, player_token)
-                game.addPlayer(0, self.gamePlayer)
-            elif game.players[1].get("token") == player_token:
-                player_index = 1
-                self.gamePlayer = GamePlayer(self, game, 1, player_token)
-                game.addPlayer(1, self.gamePlayer)
-
-        # No matching player token found, and second player slot is occupied
-        if player_index is None:
-            if game.players[0].get("token") is None:
-                print("First player joined")
-                # Game is fresh, generate new player token and assign as first player
-                player_token = str(uuid.uuid4())
-                game.players[0]['token'] = player_token
-                self.gamePlayer = GamePlayer(self, game, 0, player_token)
-                game.addPlayer(0, self.gamePlayer)
-            elif game.players[1].get("token") is None:
-                print("Second player joined")
-                player_token = str(uuid.uuid4())
-                game.players[1]['token'] = player_token
-                self.gamePlayer = GamePlayer(self, game, 1, player_token)
-                game.addPlayer(1, self.gamePlayer)
-            else:
-                return false
-
-        return game
-
-    def getGame(self):
-        return self.games[self.id]
-
-    def on_message(self, message):
-        responses = []
-        #response = {"status": None, "data": None}
-
-        #try:
-        requests = json.loads(message)
-
-        for request in requests:
-            responses.append(self.process_request(request))
-        #except e:
-            #responses.append({"status": "ERROR", "message": "An error occurred"})
-            #raise e
-
-        self.write_message(json.dumps(responses))
-
-
-    def process_request(self, request):
-        try:
-            response = {}
-            response['status'] = 'OK'
-
-            #print("testing");
-            #print(request)
-
-            if "action" not in request:
-                #response = self.gamePlayer.eventMgr.default(request)
-                response['status'] = "ERROR"
-                response['message'] = "No action specified"
-            elif request.get("action") == "createGame":
-                print("Creating game")
-                game_token = self.createGame(request)
-                game = self.joinGame(game_token, None)
-                if not game:
-                    response['status'] = "ERROR"
-                    response['message'] = "Unable to create game"
-                else:
-                    response['data'] = {
-                        "action": "INIT",
-                        "players": game.getPlayerPositions(),
-                        "gameToken": str(game_token),
-                        "playerToken": self.gamePlayer.getToken(),
-                        "mobs": MobEncoder().encode(self.gamePlayer.game.mobs)
-                    }
-            elif request.get("action") == "joinGame":
-                print("Join game")
-
-                # Does this game exist?
-                if "gameToken" not in request:
-                    response['status'] = 'ERROR'
-                    response['message'] = 'Token must be specified'
-                elif request.get("gameToken") not in ACTIVE_GAMES:
-                    response['status'] = 'ERROR'
-                    response['message'] = 'Token is invalid'
-                else:
-                    game = self.joinGame(request.get("gameToken"), request.get("playerToken"))
-
-                    if not game:
-                        response['status'] = 'ERROR'
-                        response['message'] = 'Unable to join game'
-                    else:
-                        response['data'] = {
-                            "action": "INIT",
-                             "players": game.getPlayerPositions(),
-                             "gameToken": str(game.getToken()),
-                             "playerToken": self.gamePlayer.getToken(),
-                             "mobs": MobEncoder().encode(self.gamePlayer.game.mobs)
-                         }
-
-            elif self.gamePlayer is not None and request.get("action") in dir(self.gamePlayer.eventMgr):
-                response['status'] = 'OK'
-                response['data'] = getattr(self.gamePlayer.eventMgr, request.get("action"))(request)
-            else:
-                response['status'] = 'ERROR'
-                response['data'] = 'INVALID STATE'
-            print(response)
-            return response
-        except ValueError as e:
-            return {"error": "Bad Value"}
-
-
-    def on_close(self):
-        self.clients.remove(self)
-        print("WebSocket closed")
-
-application = tornado.web.Application([
-    (r"/websocket", GameClient),
-], autoreload=True)
+        settings.update(pycket = pycket_settings)
+        tornado.web.Application.__init__(self, handlers, **settings)
 
 if __name__ == "__main__":
-    application.listen(8888)
+    http_server = tornado.httpserver.HTTPServer(Application())
+    http_server.listen(8888)
     tornado.ioloop.IOLoop.instance().start()
