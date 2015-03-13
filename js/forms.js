@@ -16,6 +16,7 @@ $(function () {
                     $("#game-list").append(html);
                     $("#gamesModal ul a").click(function () {
                         initGame(this.getAttribute("gameToken"));
+                        $('#registration-form').foundation('reveal', 'close');
                     })
                     $('#gamesModal').foundation('reveal', 'open');
                 })

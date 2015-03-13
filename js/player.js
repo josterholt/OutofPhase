@@ -174,6 +174,7 @@ Player.prototype.update = function () {
 
                     game.add.tween(this.hitbox).to({alpha: 0}, 500, Phaser.Easing.Linear.None, true).onComplete.add(function () {
                         this.hitbox.cooldown = false;
+                        this.hitbox.solid = false;
                         this.body.immovable = false;
                     }, this);
 

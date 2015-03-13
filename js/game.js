@@ -125,8 +125,13 @@ function initGame(game_token) {
     }
 }
 
+function boot() {
+    
+}
+
 function startGame() {
     game = new Phaser.Game(800, 650, Phaser.AUTO, 'main');
+    game.state.add('Boot', boot);
     game.state.add('Menu', OPGame.Menu);
     game.state.add('Level1', OPGame.Level1);
     game.state.start('Level1');

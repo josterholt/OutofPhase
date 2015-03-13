@@ -2,18 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2c9feba4-fc6b-4f9e-aaad-944365431478" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/system/GameState.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/events/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/mobs/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/player/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/system/client.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/forms.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/js/levels.js" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/css/main.css" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/events/manager.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/mobs/models.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/player/models.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/mobs/utils.py" />
+      <change type="DELETED" beforePath="W:\outofphase\app\mysql\__init__.py" afterPath="" />
       <change type="DELETED" beforePath="W:\outofphase\app\py34env\bin\activate" afterPath="" />
       <change type="DELETED" beforePath="W:\outofphase\app\py34env\bin\activate.csh" afterPath="" />
       <change type="DELETED" beforePath="W:\outofphase\app\py34env\bin\activate.fish" afterPath="" />
@@ -1268,35 +1257,73 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/xmasgirl1.png" afterPath="$PROJECT_DIR$/images/characters/xmasgirl1.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/images/characters/xmasgirl3.png" afterPath="$PROJECT_DIR$/images/characters/xmasgirl3.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/.name" afterPath="$PROJECT_DIR$/.idea/.name" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/.name" afterPath="$PROJECT_DIR$/app/.idea/.name" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/system/GameState.py" afterPath="$PROJECT_DIR$/app/system/GameState.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/app/.idea/inspectionProfiles/Project_Default.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/test/TEST_DIRECTORY" afterPath="$PROJECT_DIR$/app/torndsession/test/TEST_DIRECTORY" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/events/__init__.py" afterPath="$PROJECT_DIR$/app/events/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/mobs/__init__.py" afterPath="$PROJECT_DIR$/app/mobs/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/mysql-test/__init__.py" afterPath="$PROJECT_DIR$/app/mysql-test/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/player/__init__.py" afterPath="$PROJECT_DIR$/app/player/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/settings/__init__.py" afterPath="$PROJECT_DIR$/app/settings/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/__init__.py" afterPath="$PROJECT_DIR$/app/torndsession/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/utils/__init__.py" afterPath="$PROJECT_DIR$/app/utils/__init__.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/app.iml" afterPath="$PROJECT_DIR$/app/.idea/app.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/attacks.js" afterPath="$PROJECT_DIR$/js/attacks.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/client.js" afterPath="$PROJECT_DIR$/js/client.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/system/client.py" afterPath="$PROJECT_DIR$/app/system/client.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/settings/config.py" afterPath="$PROJECT_DIR$/app/settings/config.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/debug.js" afterPath="$PROJECT_DIR$/js/debug.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/debug_snippets.js" afterPath="$PROJECT_DIR$/js/debug_snippets.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/driver.py" afterPath="$PROJECT_DIR$/app/torndsession/driver.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/encodings.xml" afterPath="$PROJECT_DIR$/.idea/encodings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/encodings.xml" afterPath="$PROJECT_DIR$/app/.idea/encodings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/filesession.py" afterPath="$PROJECT_DIR$/app/torndsession/filesession.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/forms.js" afterPath="$PROJECT_DIR$/js/forms.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/game.js" afterPath="$PROJECT_DIR$/js/game.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/game2.js" afterPath="$PROJECT_DIR$/js/game2.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/globals.py" afterPath="$PROJECT_DIR$/app/globals.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.html" afterPath="$PROJECT_DIR$/index.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index_old.html" afterPath="$PROJECT_DIR$/index_old.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tilesets/level1.bak.tmx" afterPath="$PROJECT_DIR$/tilesets/level1.bak.tmx" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tilesets_json/level1.json.bak" afterPath="$PROJECT_DIR$/tilesets_json/level1.json.bak" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tilesets_json/level1.json" afterPath="$PROJECT_DIR$/tilesets_json/level1.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tilesets/level1.tmx" afterPath="$PROJECT_DIR$/tilesets/level1.tmx" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/levels.js" afterPath="$PROJECT_DIR$/js/levels.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/css/main.css" afterPath="$PROJECT_DIR$/css/main.css" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/events/manager.py" afterPath="$PROJECT_DIR$/app/events/manager.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/memcachedsession.py" afterPath="$PROJECT_DIR$/app/torndsession/memcachedsession.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/memorysession.py" afterPath="$PROJECT_DIR$/app/torndsession/memorysession.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/misc.xml" afterPath="$PROJECT_DIR$/app/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/mobs.js" afterPath="$PROJECT_DIR$/js/mobs.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/mobs/models.py" afterPath="$PROJECT_DIR$/app/mobs/models.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/player/models.py" afterPath="$PROJECT_DIR$/app/player/models.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/modules.xml" afterPath="$PROJECT_DIR$/app/.idea/modules.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/utils/mysql.py" afterPath="$PROJECT_DIR$/app/utils/mysql.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/objects.js" afterPath="$PROJECT_DIR$/js/objects.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/outofphase.iml" afterPath="$PROJECT_DIR$/.idea/outofphase.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/phaser.js" afterPath="$PROJECT_DIR$/js/phaser.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/phaser.min.js" afterPath="$PROJECT_DIR$/js/phaser.min.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/player.js" afterPath="$PROJECT_DIR$/js/player.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/inspectionProfiles/profiles_settings.xml" afterPath="$PROJECT_DIR$/app/.idea/inspectionProfiles/profiles_settings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/redissession.py" afterPath="$PROJECT_DIR$/app/torndsession/redissession.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/requirements.txt" afterPath="$PROJECT_DIR$/app/requirements.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" afterPath="$PROJECT_DIR$/.idea/scopes/scope_settings.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/scopes/scope_settings.xml" afterPath="$PROJECT_DIR$/app/.idea/scopes/scope_settings.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/server.py" afterPath="$PROJECT_DIR$/app/server.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/session.py" afterPath="$PROJECT_DIR$/app/torndsession/session.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/torndsession/sessionhandler.py" afterPath="$PROJECT_DIR$/app/torndsession/sessionhandler.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/mysql-test/test.py" afterPath="$PROJECT_DIR$/app/mysql-test/test.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/triggers.js" afterPath="$PROJECT_DIR$/js/triggers.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/utils.js" afterPath="$PROJECT_DIR$/js/utils.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/mobs/utils.py" afterPath="$PROJECT_DIR$/app/mobs/utils.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/vcs.xml" afterPath="$PROJECT_DIR$/app/.idea/vcs.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/js/websockets.js" afterPath="$PROJECT_DIR$/js/websockets.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/.idea/workspace.xml" afterPath="$PROJECT_DIR$/app/.idea/workspace.xml" />
     </list>
     <ignored path="outofphase.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -1547,7 +1574,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="960" y="0" width="960" height="1050" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32976446" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
