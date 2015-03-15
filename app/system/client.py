@@ -55,34 +55,42 @@ class GameClient(websocket.WebSocketHandler, SessionMixin):
         # - Continued game
         player_index = None
 
+        print("User ID: " + str(self.session.get("userID")))
+
         if player_token is not None:
-            if game.players[0].get("token") == player_token:
+            if game.players[0].get("userID") == self.session.get("userID"):
                 player_index = 0
                 self.gamePlayer = GamePlayer(self, game, 0, user_id, player_token)
                 game.addPlayer(0, self.gamePlayer)
-            elif game.players[1].get("token") == player_token:
+            elif game.players[1].get("userID") == self.session.get("userID"):
                 player_index = 1
                 self.gamePlayer = GamePlayer(self, game, 1, user_id, player_token)
                 game.addPlayer(1, self.gamePlayer)
 
         # No matching player token found, and second player slot is occupied
         if player_index is None:
-            if game.players[0].get("token") is None:
+            if game.players[0].get("userID") is None:
                 print("First player joined")
                 # Game is fresh, generate new player token and assign as first player
                 player_token = str(uuid.uuid4())
                 game.players[0]['token'] = player_token
+                game.players[1]['userID'] = self.session.get("userID")
                 print("First player ID: " + str(self.session.get("userID")))
                 self.gamePlayer = GamePlayer(self, game, 0, self.session.get("userID"), player_token)
                 game.addPlayer(0, self.gamePlayer)
-            elif game.players[1].get("token") is None:
+            elif game.players[1].get("userID") is None:
                 print("Second player joined")
                 player_token = str(uuid.uuid4())
                 game.players[1]['token'] = player_token
+                game.players[1]['userID'] = self.sesion.get("userID")
                 self.gamePlayer = GamePlayer(self, game, 1, self.session.get("userID"), player_token)
                 game.addPlayer(1, self.gamePlayer)
             else:
-                return false
+                return False
+
+            # This may need to be abstracted out
+            # self.session['playerToken'] = player_token
+            # self.session['playerIndex'] = player_index
 
         return game
 

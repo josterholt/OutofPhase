@@ -76,7 +76,7 @@ class GameListHandler(tornado.web.RequestHandler, SessionMixin):
             self.write({"error": "Invalid userid"})
             return
 
-        rows = DB.fetchAll("SELECT gameinstances.token, u1.display_name, u2.display_name " \
+        rows = DB.fetchAll("SELECT gameinstances.token, gameinstances.user1_token, gameinstances.user2_token, u1.display_name, u2.display_name " \
             "FROM gameinstances " \
             "JOIN users u1 ON u1.id = gameinstances.user1 " \
             "LEFT JOIN users u2 ON u2.id = gameinstances.user2 " \
@@ -84,7 +84,7 @@ class GameListHandler(tornado.web.RequestHandler, SessionMixin):
 
         games = []
         for game in rows:
-            games.append({"gameToken": game[0], "user1": game[1], "user2": game[2]})
+            games.append({"gameToken": game[0], "user1_token": game[1], "user2_token": game[2], "user1": game[3], "user2": game[4]})
 
         self.write({"games": games})
 

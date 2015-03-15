@@ -1,3 +1,50 @@
+/**
+ * Gamepad config
+ */
+var gamepad = {};
+gamepad.BUTTONS = {
+    FACE_1: 0, // Face (main) buttons
+    FACE_2: 1,
+    FACE_3: 2,
+    FACE_4: 3,
+    LEFT_SHOULDER: 4, // Top shoulder buttons
+    RIGHT_SHOULDER: 5,
+    LEFT_SHOULDER_BOTTOM: 6, // Bottom shoulder buttons
+    RIGHT_SHOULDER_BOTTOM: 7,
+    SELECT: 8,
+    START: 9,
+    LEFT_ANALOGUE_STICK: 10, // Analogue sticks (if depressible)
+    RIGHT_ANALOGUE_STICK: 11,
+    PAD_TOP: 12, // Directional (discrete) pad
+    PAD_BOTTOM: 13,
+    PAD_LEFT: 14,
+    PAD_RIGHT: 15
+};
+
+gamepad.AXES = {
+  LEFT_ANALOGUE_HOR: 0,
+  LEFT_ANALOGUE_VERT: 1,
+  RIGHT_ANALOGUE_HOR: 2,
+  RIGHT_ANALOGUE_VERT: 3
+};
+
+gamepad_supported = false;
+analogue_treshold = 0.5;
+
+$(function () {
+    if ('ongamepadconnected' in window) {    
+        window.addEventListener('gamepadconnected', function () { console.debug("connected"); }, false);
+        window.addEventListener('gamepaddisconnected', function () { console.debug("disconnected"); }, false);    
+    }
+});
+
+function gamepadSupported() {
+    return !!navigator.webkitGetGamepads || !!navigator.webkitGamepads || !!navigator.getGamepads;    
+}
+/**
+ * End Gamepad config
+ */
+
 function Player(player_num, player_sprite, x, y) {
     Phaser.Sprite.call(this, game, x, y, player_sprite)
     this.playerIndex = player_num - 1;
@@ -92,29 +139,85 @@ function Player(player_num, player_sprite, x, y) {
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
+var gamepad_a_just_down = false;
 Player.prototype.update = function () {
     if(this.playerIndex == CURRENT_PLAYER_INDEX) {
         //this.body.velocity.x = 0;
         //this.body.velocity.y = 0;
         //this.hitbox.solid = false;
+        
+        /**
+         * Gamepad detection
+         */
+        var gamepad_left = false, gamepad_right = false, gamepad_up = false, gamepad_down = false, gamepad_a = false, gamepad_b = false;        
+        if(gamepad_supported == false) {
+            gamepad_supported = gamepadSupported();
+        }
 
-        if (game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+        if(gamepad_supported) {
+            var controller = navigator.getGamepads()[0];
+
+            if(controller != undefined) {
+                // Move character left
+                if(controller.buttons[gamepad.BUTTONS.PAD_LEFT].value || controller.axes[gamepad.AXES.LEFT_ANALOGUE_HOR] < -analogue_treshold) {
+                    gamepad_left = true;
+                }
+
+                // Move character right
+                if(controller.buttons[gamepad.BUTTONS.PAD_RIGHT].value || controller.axes[gamepad.AXES.LEFT_ANALOGUE_HOR] > analogue_treshold) {
+                    gamepad_right = true;
+                }
+
+                // Move character up
+                if(controller.buttons[gamepad.BUTTONS.PAD_TOP].value || controller.axes[gamepad.AXES.LEFT_ANALOGUE_VERT] < -analogue_treshold) {
+                    gamepad_up = true;
+                }
+
+                // Move character down
+                if(controller.buttons[gamepad.BUTTONS.PAD_BOTTOM].value || controller.axes[gamepad.AXES.LEFT_ANALOGUE_VERT] > analogue_treshold) {
+                    gamepad_down = true;
+                }
+                
+                // Fire main weapon
+                if(controller.buttons[gamepad.BUTTONS.FACE_1].value == 1) {
+                    gamepad_a = true;
+                    
+                    if(!gamepad_a_just_down) {
+                        gamepad_a_just_down = true;
+                    } else {
+                        gamepad_a_just_down = false;
+                    }
+                } else {
+                    gamepad_a_just_down = false;
+                }
+                
+                if(controller.buttons[gamepad.BUTTONS.FACE_2].value == 1) {
+                    gamepad_b = true;
+                }                
+                
+            }
+        }   
+        /**
+         * End gamepad detection and processing
+         */
+
+        if (gamepad_left || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
             this.body.velocity.x -= speed;
             this.animations.play('walk_left', 5, true);
             this.body.facing = Phaser.LEFT;
             UI.clearSticky();
-        } else if (game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+        } else if (gamepad_right || game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
             this.body.velocity.x += speed;
             this.animations.play('walk_right', 5, true);
             this.body.facing = Phaser.RIGHT;
             UI.clearSticky();
             console.debug("Right");
-        } else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+        } else if (gamepad_up || game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
             this.body.velocity.y -= speed;
             this.animations.play('walk_up', 5, true);
             this.body.facing = Phaser.UP;
             UI.clearSticky();
-        } else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+        } else if (gamepad_down || game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
             this.body.velocity.y += speed;
             this.animations.play('walk_down', 5, true);
             this.body.facing = Phaser.DOWN;
@@ -131,7 +234,7 @@ Player.prototype.update = function () {
         }
 
         var attack_action = false;
-        if(this.spaceKey.justDown) {
+        if(gamepad_a_just_down || this.spaceKey.justDown) {
             this.body.velocity.y = 0;
             this.body.velocity.x = 0;
             this.animations.stop(null, 0);

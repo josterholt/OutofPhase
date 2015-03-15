@@ -6,8 +6,8 @@ function showGamesList(data) {
     }
     $("#game-list").append(html);
     $("#gamesModal ul a").click(function () {
+        $('#gamesModal').foundation('reveal', 'close');
         initGame(this.getAttribute("gameToken"));
-        $('#registration-form').foundation('reveal', 'close');
     })
     $('#gamesModal').foundation('reveal', 'open');
 
@@ -15,7 +15,16 @@ function showGamesList(data) {
 $(function () {
 
     $.getJSON("/rest/games", function (data) {
-        showGamesList(data); 
+        if(!("error" in data)) {
+            showGamesList(data); 
+        } else {
+            var user = null;
+            if (!user) {
+                $('#loginModal').foundation('reveal', 'open');
+            } else {
+                
+            }            
+        }
     });
     
     $("#login-btn").click(function (evt) {

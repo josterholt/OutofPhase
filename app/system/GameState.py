@@ -23,7 +23,7 @@ class GameState:
         self.players = [{"token": None, "position": [0,0], "velocity": [0,0], "facing": 0}, {"token": None, "position": [150, 150], "velocity": [0,0], "facing": 0}]
         self.mobs = []
 
-        json_data = open('/var/www/outofphase/tilesets_json/level1.json')
+        json_data = open('/var/www/outofphase/tilesets_json/western_kingdom.json')
         data = json.load(json_data)
         tile_width = data.get("tilewidth")
         for layer in data.get("layers"):
@@ -51,9 +51,9 @@ class GameState:
     def addPlayer(self, player_index, player):
         self.gamePlayers.insert(player_index, player)
         if player_index == 0:
-            DB.execute("UPDATE gameinstances SET user1 = %s WHERE token = %s", (player.userID, str(self.token)))
+            DB.execute("UPDATE gameinstances SET user1 = %s, user1_token = %s WHERE token = %s", (player.userID, player.getToken(), str(self.token)))
         else:
-            DB.execute("UPDATE gameinstances SET user2 = %s WHERE token = %s", (player.userID, str(self.token)))
+            DB.execute("UPDATE gameinstances SET user2 = %s, user2_token = %s WHERE token = %s", (player.userID, player.getToken(), str(self.token)))
 
     def getStateUpdates(self):
         return {"action": "UPDATE", "players": self.getPlayerPositions() }

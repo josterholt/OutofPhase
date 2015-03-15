@@ -270,14 +270,14 @@ OPGame.WesternKingdom.prototype = {
         //collide_layer = map.createLayer('collide');
         //map.setCollisionBetween(400, 500, true, 'collide');
 
-        layer1 = map.createLayer('Floor');
-        border_layer = map.createLayer('Border');
-        map.setCollisionBetween(0, 100, true, 'Border');
+        layer1 = map.createLayer('floor');
+        border_layer = map.createLayer('border');
+        map.setCollisionBetween(0, 100, true, 'border');
         
-        map.createLayer('Town Floor');
-        map.createLayer('Town Buildings');
-        map.createLayer('Pedestals');
-        map.createLayer('Forrest');
+        map.createLayer('town_floor');
+        map.createLayer('buildings');
+        map.createLayer('pedestals');
+        map.createLayer('forrest');
 
 
         //object_layer = map.createLayer('object');
