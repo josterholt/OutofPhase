@@ -134,5 +134,6 @@ function startGame() {
     game.state.add('Boot', boot);
     game.state.add('Menu', OPGame.Menu);
     game.state.add('Level1', OPGame.Level1);
-    game.state.start('Level1');
+    game.state.add('WesternKingdom', OPGame.WesternKingdom);
+    game.state.start('WesternKingdom');
 }

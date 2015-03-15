@@ -129,6 +129,10 @@ function createFromTiledObject(element, group, sprite_class) {
 
 function findObjectsByType(type, map, layer) {
     var results = [];
+    if(!(layer in map.objects)) {
+        return false;    
+    }
+    
     map.objects[layer].forEach(function(element) {
         if(element.properties.type == type) {
             element.y -= map.tileHeight;
@@ -139,35 +143,41 @@ function findObjectsByType(type, map, layer) {
 }
 
 function initTargetObjects(initial) {
-    results = findObjectsByType('help', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
+    if(results = findObjectsByType('help', map, 'triggers')) {
+        results.forEach(function(element) {
+            createFromTiledObject(element, trigger_objects)
+        }, this);
+    }
 
-    results = findObjectsByType('wall', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
+    if(results = findObjectsByType('wall', map, 'triggers')) {
+        results.forEach(function(element) {
+            createFromTiledObject(element, trigger_objects)
+        }, this);
+    }
 
-    results = findObjectsByType('trigger', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
+    if(results = findObjectsByType('trigger', map, 'triggers')) {
+        results.forEach(function(element) {
+            createFromTiledObject(element, trigger_objects)
+        }, this);
+    }
 
-    results = findObjectsByType('trigger.pressure', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects, PressureTrigger)
-    }, this);
+    if(results = findObjectsByType('trigger.pressure', map, 'triggers')) {
+        results.forEach(function(element) {
+            createFromTiledObject(element, trigger_objects, PressureTrigger)
+        }, this);
+    }
 
-    results = findObjectsByType('trigger.object', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, trigger_objects)
-    }, this);
+    if(results = findObjectsByType('trigger.object', map, 'triggers')) {
+        results.forEach(function(element) {
+            createFromTiledObject(element, trigger_objects)
+        }, this);
+    }
 
-    results = findObjectsByType('section', map, 'triggers');
-    results.forEach(function(element) {
-        createFromTiledObject(element, sections)
-    }, this);
+    if(results = findObjectsByType('section', map, 'triggers')) {
+        results.forEach(function(element) {
+            createFromTiledObject(element, sections)
+        }, this);
+    }
 
     for(i in trigger_objects.children) {
         var obj = trigger_objects.children[i];

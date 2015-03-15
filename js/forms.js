@@ -1,4 +1,23 @@
+function showGamesList(data) {
+    html = "";
+    for(i in data['games']) {
+        var game = data['games'][i];
+        html += "<div><a href='#' gameToken='" + game.gameToken + "'>" + game.user1 + " + " + game.user2 + "</a></div>";
+    }
+    $("#game-list").append(html);
+    $("#gamesModal ul a").click(function () {
+        initGame(this.getAttribute("gameToken"));
+        $('#registration-form').foundation('reveal', 'close');
+    })
+    $('#gamesModal').foundation('reveal', 'open');
+
+}
 $(function () {
+
+    $.getJSON("/rest/games", function (data) {
+        showGamesList(data); 
+    });
+    
     $("#login-btn").click(function (evt) {
         var username = $("#login-form input[name=username]").val();
         var password = $("#login-form input[name=password]").val();
@@ -8,17 +27,7 @@ $(function () {
                 console.debug("An error occurred while logging in")
             } else {
                 $.getJSON("/rest/games", function (data) {
-                    html = "";
-                    for(i in data['games']) {
-                        var game = data['games'][i];
-                        html += "<div><a href='#' gameToken='" + game.gameToken + "'>" + game.user1 + " + " + game.user2 + "</a></div>";
-                    }
-                    $("#game-list").append(html);
-                    $("#gamesModal ul a").click(function () {
-                        initGame(this.getAttribute("gameToken"));
-                        $('#registration-form').foundation('reveal', 'close');
-                    })
-                    $('#gamesModal').foundation('reveal', 'open');
+                    showGamesList(data); 
                 })
 
             }
