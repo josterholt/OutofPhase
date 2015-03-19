@@ -57,10 +57,15 @@ function Player(player_num, player_sprite, x, y) {
     this.animations.add('walk_left', [4,5,6,7], true);
     this.animations.add('walk_right', [8,9,10,11], true);
     this.animations.add('walk_up', [12,13,14,15], true);
+    
+    //this.animations.add('walk_down', [0,1,2,3,4,5,6,7], true);
+    //this.animations.add('walk_left', [8,9,10,11,12,13,14,15], true);
+    //this.animations.add('walk_right', [16,17,18,19,20,21,22,23], true);
+    //this.animations.add('walk_up', [24,25,26,27,28,29,30,31], true);
 
     game.physics.enable(this, Phaser.Physics.ARCADE);
     this.body.collideWorldBounds = true;
-    this.body.setSize(32, 10, 0, (this.height - 20));
+    this.body.setSize(70, 50, 0, (this.height - 30));
     this.body.allowRotation = false;
     this.body.maxVelocity.x = 100;
     this.body.maxVelocity.y = 100;
@@ -129,11 +134,13 @@ function Player(player_num, player_sprite, x, y) {
 
     //PLAYERS[player_num - 1] = this;
     this.hitbox = this.initPlayerHitBox(player_num);
-
+    this.show_hitbox_debug = false;
+    
     // Keyboard init
     this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     this.tabKey = game.input.keyboard.addKey(Phaser.Keyboard.TAB);
     game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.TAB]);
+    this.testing = 0;
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -145,6 +152,7 @@ Player.prototype.update = function () {
         //this.body.velocity.x = 0;
         //this.body.velocity.y = 0;
         //this.hitbox.solid = false;
+    	this.testing += 1;
         
         /**
          * Gamepad detection
@@ -211,7 +219,6 @@ Player.prototype.update = function () {
             this.animations.play('walk_right', 5, true);
             this.body.facing = Phaser.RIGHT;
             UI.clearSticky();
-            console.debug("Right");
         } else if (gamepad_up || game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
             this.body.velocity.y -= speed;
             this.animations.play('walk_up', 5, true);
@@ -223,7 +230,6 @@ Player.prototype.update = function () {
             this.body.facing = Phaser.DOWN;
             UI.clearSticky();
         } else {
-            console.debug("Stop");
             this.animations.stop(null, 0);
         }
 
@@ -241,24 +247,28 @@ Player.prototype.update = function () {
 
             UI.clearSticky();
             if (this.body.facing == Phaser.RIGHT) {
+            	console.debug("RIGHT");
                 this.hitbox.reset(this.x + (this.width / 2), this.y + (this.hitbox.body.height / 2));
                 this.hitbox.body.facing = Phaser.RIGHT;
                 this.hitbox.pivot.x = 0;
                 this.hitbox.pivot.y = -5;
                 this.hitbox.body.rotation = 0;
             } else if (this.body.facing == Phaser.LEFT) {
+            	console.debug("LEFT");
                 this.hitbox.reset(this.x - (this.hitbox.body.width / 2), this.y + (this.hitbox.body.height / 2));
                 this.hitbox.pivot.x = 32;
                 this.hitbox.pivot.y = 5;
                 this.hitbox.body.rotation = 180// Math.PI;
                 this.hitbox.body.facing = Phaser.LEFT;
             } else if (this.body.facing == Phaser.DOWN) {
+            	console.debug("DOWN");
                 this.hitbox.body.facing = Phaser.DOWN;
-                this.hitbox.reset(this.body.x, this.body.y);
+                this.hitbox.reset(this.body.x, this.body.y + (this.body.height / 2 / 2));
                 this.hitbox.pivot.x = -2;
                 this.hitbox.pivot.y = 15
                 this.hitbox.body.rotation = 90;
             } else if (this.body.facing == Phaser.UP) {
+            	console.debug("UP");
                 this.hitbox.reset(this.body.x, this.y - (this.hitbox.height / 2));
                 this.hitbox.body.facing = Phaser.UP;
                 this.hitbox.pivot.x = 32;
@@ -275,14 +285,18 @@ Player.prototype.update = function () {
                     this.hitbox.alpha = 1;
                     this.hitbox.cooldown = true;
 
-                    game.add.tween(this.hitbox).to({alpha: 0}, 500, Phaser.Easing.Linear.None, true).onComplete.add(function () {
+                    this.show_hitbox_debug = true;
+                    game.add.tween(this.hitbox).to({alpha: 1.0}, 1000, Phaser.Easing.Linear.None, true).onComplete.add(function () {
+                    	console.debug("Hide");
                         this.hitbox.cooldown = false;
                         this.hitbox.solid = false;
                         this.body.immovable = false;
+                        this.hitbox.visible = false;
+                        this.hitbox.alpha = 0;
+                        this.show_hitbox_debug = false;
                     }, this);
 
                     game.physics.arcade.overlap(this.hitbox, trigger_objects, function (obj1, obj2) {
-                        console.debug("Hit");
                         processTrigger(obj1, obj2);
                     });
                 }
@@ -291,6 +305,8 @@ Player.prototype.update = function () {
             }
 
 
+        } else {
+        	console.debug("Not down");
         }
     } else {
         var player_indx = this.playerIndex;
@@ -390,11 +406,35 @@ Player.prototype.update = function () {
 
     });
 
-    var overlap = game.physics.arcade.overlap(this.hitbox, mobs, function (hitbox, mob) {
+    var overlap = game.physics.arcade.overlap(this.hitbox, OPGame.mobs, function (hitbox, mob) {
         mob.solid = false;
         mob.body.velocity.x = 0;
         mob.body.velocity.y = 0;
         mob.stunned = true;
+        mob.damage();
+        
+        var velocity = [0, 0];
+        if(mob.body.x < hitbox.body.x + hitbox.body.width/2) {
+            velocity[0] = -1;
+        } else {
+            velocity[0] = 1;
+        }
+
+        if(mob.body.y < hitbox.body.y + hitbox.body.height/2) {
+            velocity[1] = -1;
+        } else {
+            velocity[1] = 1;
+        }
+
+        if(hitbox.player.body.facing == Phaser.LEFT || hitbox.player.body.facing == Phaser.RIGHT) {
+            mob.body.velocity.x += velocity[0] * 200;
+            mob.body.velocity.y = 0;
+        } else {
+            mob.body.velocity.y += velocity[1] * 200;
+            mob.body.velocity.x = 0;
+        }
+
+       
 
         var tween = game.add.tween(mob).to({ alpha: 0.1 }, 100, Phaser.Easing.Linear.None, true, 0, 6, true);
         tween.onLoop.add(function (target, tween) {
@@ -417,6 +457,7 @@ Player.prototype.update = function () {
                 })
             }
         });
+        // @todo This is probably going to cause problems with multiple mobs at once
         hitbox.solid = false;
     }, function (hitbox, mob) {
         if(hitbox.solid != true) {
@@ -430,8 +471,33 @@ Player.prototype.update = function () {
             soundFXs['hit1'].play();
         } else {
             soundFXs['attack1'].play();
-        }
+        }       
     }
+    
+    if(this.show_hitbox_debug) {
+        body1 = this.hitbox.body;
+        g1 = game.add.graphics(body1.x, body1.y)
+        g1.beginFill(0xFF0000)
+        g1.drawCircle(0, 0, 5);
+        game.add.tween(g1).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
+        
+        g2 = game.add.graphics(body1.x, body1.bottom)
+        g2.beginFill(0x00FF00)
+        g2.drawCircle(0, 0, 5);
+        game.add.tween(g2).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
+        
+        g3 = game.add.graphics(body1.right, body1.y)
+        g3.beginFill(0xFF00FF)
+        g3.drawCircle(0, 0, 5);
+        game.add.tween(g3).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
+        
+        g4 = game.add.graphics(body1.right, body1.bottom)
+        g4.beginFill(0xCCCCCC)
+        g4.drawCircle(0, 0, 5);
+        game.add.tween(g4).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);    
+
+    }
+    
 
     //players.children[0].hitbox.solid = false;
     //players.children[1].hitbox.solid = false;

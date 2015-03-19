@@ -1,3 +1,192 @@
+function Mouse(x, y, sprite_name) {
+	Phaser.Sprite.call(this, game, x,y, sprite_name);
+	
+	this.script = null;
+	this.scriptIndex = 0;
+    this.tileDimensions = {x: 32, y: 32};
+    this._initialProperties = { x: x, y: y }
+    this.eventState = { originalX: x, originalY: y }
+	
+    this.speed = 100;
+    this.solid = true;
+    this.stunned = false;
+    this.animations.add('walk_down', [0,1,2], true);
+    this.animations.add('walk_left', [3,4,5], true);
+    this.animations.add('walk_right', [6,7,8], true);
+    this.animations.add('walk_up', [9,10,11], true);
+
+    this.chaseThreshold = 175;
+    
+    game.physics.enable(this, Phaser.Physics.ARCADE);
+    this.body.facing = Phaser.RIGHT;
+    this.body.collideWorldBounds = true;
+
+    this.body.maxVelocity.x = 100;
+    this.body.maxVelocity.y = 100;
+    //this.body.drag.x = 2000;
+    //this.body.drag.y = 2000;
+    this.body.drag.x = 100;
+    this.body.drag.y = 100;    
+
+    this.fullHealth = 3;
+    this.health = this.fullHealth;
+    
+    // Override postUpdate so body.facing isn't changed.
+    this.body.postUpdate = function () {
+        if (!this.enable)
+        {
+            return;
+        }
+
+        //  Only allow postUpdate to be called once per frame
+        if (this.phase === 2)
+        {
+            return;
+        }
+
+        this.phase = 2;
+
+        if (this.moves)
+        {
+            this._dx = this.deltaX();
+            this._dy = this.deltaY();
+
+            if (this.deltaMax.x !== 0 && this._dx !== 0)
+            {
+                if (this._dx < 0 && this._dx < -this.deltaMax.x)
+                {
+                    this._dx = -this.deltaMax.x;
+                }
+                else if (this._dx > 0 && this._dx > this.deltaMax.x)
+                {
+                    this._dx = this.deltaMax.x;
+                }
+            }
+
+            if (this.deltaMax.y !== 0 && this._dy !== 0)
+            {
+                if (this._dy < 0 && this._dy < -this.deltaMax.y)
+                {
+                    this._dy = -this.deltaMax.y;
+                }
+                else if (this._dy > 0 && this._dy > this.deltaMax.y)
+                {
+                    this._dy = this.deltaMax.y;
+                }
+            }
+
+            this.sprite.x += this._dx;
+            this.sprite.y += this._dy;
+        }
+
+        this.center.setTo(this.position.x + this.halfWidth, this.position.y + this.halfHeight);
+
+        if (this.allowRotation)
+        {
+            this.sprite.angle += this.deltaZ();
+        }
+
+        this.prev.x = this.position.x;
+        this.prev.y = this.position.y;
+    }    
+}
+
+Mouse.prototype = Object.create(Phaser.Sprite.prototype);
+Mouse.prototype.constructor = Mouse;
+Mouse.prototype.update = function () {
+	// Process script
+	if(this.script != null) {
+		var script_node = this.script['events'][this.scriptIndex];
+		// Have we fulfiled the last action?
+		var next_action = false;
+		if("velocity" in script_node) {
+			if(Math.round(this.x) == (this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x) && Math.round(this.y) == (this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)) {
+				next_action = true;
+			}
+		}
+		
+		if("delay" in script_node) {
+			// Check if the delay duration has passed
+		}
+		
+		if(next_action == true) {
+			this.eventState.originalX = Math.round(this.body.x);
+			this.eventState.originalY = Math.round(this.body.y);
+			this.scriptIndex++;
+			if(this.scriptIndex >= this.script['events'].length) {
+				this.scriptIndex = 0;
+			}
+		}
+		
+		/**
+		 * Process event
+		 */
+		var script_node = this.script['events'][this.scriptIndex];
+		if("velocity" in script_node) {
+			//console.debug(this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x + " / " + this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)
+			if(!this.stunned) {
+				game.physics.arcade.moveToXY(this, Math.round((this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x)), Math.round((this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y), this.speed))
+			}
+		}
+		
+		//console.debug(game.physics.arcade.distanceBetween(this, PLAYERS[0]));
+		
+		if(game.physics.arcade.distanceBetween(this, PLAYERS[0]) <= this.chaseThreshold) {
+			//console.debug("Following")
+			if(!this.stunned) {
+				game.physics.arcade.moveToXY(this, PLAYERS[0].body.x, PLAYERS[0].body.y, this.speed);
+			}
+		}
+		
+
+	  if(this.body.facing == Phaser.RIGHT) {
+		  this.animations.play('walk_right', 5, true);
+		  this.body.facing = Phaser.RIGHT;
+	  } else if(this.body.facing == Phaser.LEFT) {
+		  this.animations.play('walk_left', 5, true);
+		  this.body.facing = Phaser.LEFT;
+	  } else if(this.body.facing == Phaser.UP) {
+		  this.animations.play('walk_up', 5, true);
+		  this.body.facing = Phaser.UP;
+	  } else if(this.body.facing == Phaser.DOWN) {
+	      this.animations.play('walk_down', 5, true);
+	      this.body.facing = Phaser.DOWN;
+	  }		
+	}
+	
+	if(this.stunned) {
+		console.debug(this.body.velocity.x + "/" + this.body.velocity.y);
+		console.debug(this.body.x + "/" + this.body.y);
+		console.debug(PLAYERS[0].testing);
+	}
+}
+
+Mouse.prototype.attachScript = function (script) {
+	this.script = script;
+}
+
+Mouse.prototype.damage = function () {
+	this.health -= 1;
+	if(this.health == 0) {
+		this.kill();
+		
+		// @todo probably should create a universal respawn timer
+		var timer = OPGame.game.time.create(true);
+		var self = this;
+		timer.add(10*1000, function () {
+			this.x = this._initialProperties.x;
+			this.body.x = this._initialProperties.x;
+			this.y = this._initialProperties.y;
+			this.body.y = this._initialProperties.y;
+			this.revive(this.fullHealth);
+		}, this)
+		timer.start();
+		
+		
+	}
+}
+
+
 function Guardian(x, y, sprite_name) {
     //this.imagePath = "images/mobs/Elemental_Earth/$Monster_Elemental_Earth.png"
 

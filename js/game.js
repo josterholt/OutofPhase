@@ -1,3 +1,4 @@
+var OPGame = {};
 var UI;
 
 var trigger_objects = {};
@@ -90,7 +91,7 @@ function initGame(game_token) {
                     if (action == "INIT") {
                         if ("data" in response && response.data != null && response.data != false && "gameToken" in response.data) {
                             localStorage['game_token'] = response.data.gameToken;
-                            prompt("Game Token", response.data.gameToken)
+                            //prompt("Game Token", response.data.gameToken)
                         }
 
                         if (response.data != null && "playerToken" in response.data) {
@@ -135,5 +136,6 @@ function startGame() {
     game.state.add('Menu', OPGame.Menu);
     game.state.add('Level1', OPGame.Level1);
     game.state.add('WesternKingdom', OPGame.WesternKingdom);
+    OPGame.game = game;
     game.state.start('WesternKingdom');
 }

@@ -89,12 +89,11 @@ function createFromTiledObject(element, group, sprite_class) {
     var sprite;
     if(sprite_class) {
         sprite = new sprite_class(game, element.x, element.y, element.properties.sprite);
-        game.physics.enable(sprite, Phaser.Physics.ARCADE);
-        group.add(sprite);
-
     } else {
         sprite = group.create(element.x, element.y, element.properties.sprite);
     }
+    game.physics.enable(sprite, Phaser.Physics.ARCADE);
+    group.add(sprite);   
 
 
     if("pushable" in element.properties && element.properties.pushable == "true") {
