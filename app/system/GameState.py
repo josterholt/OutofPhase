@@ -26,16 +26,18 @@ class GameState:
         json_data = open('/var/www/outofphase/tilesets_json/western_kingdom.json')
         data = json.load(json_data)
         tile_width = data.get("tilewidth")
+        marker_layer = None
         for layer in data.get("layers"):
             if layer.get("name") == "markers":
                 marker_layer = layer
 
-        for object in marker_layer.get("objects"):
-            if object.get("properties").get("type") == "spawn.player":
-                player_index = int(object.get("properties").get("player")) - 1
-                self.players[player_index]["position"] = [object.get("x"), object.get("y")]
-            elif object.get("properties").get("type") == "spawn.mob":
-                self.mobs.append(Mob(object.get("x"), object.get("y"), object.get("properties").get("class")))
+        if marker_layer:
+            for object in marker_layer.get("objects"):
+                if object.get("properties").get("type") == "spawn.player":
+                    player_index = int(object.get("properties").get("player")) - 1
+                    self.players[player_index]["position"] = [object.get("x"), object.get("y")]
+                elif object.get("properties").get("type") == "spawn.mob":
+                    self.mobs.append(Mob(object.get("x"), object.get("y"), object.get("properties").get("class")))
 
         DB.execute("INSERT INTO gameinstances (token) VALUES(%(token)s);", {"token": str(game_token)})
 

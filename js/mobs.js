@@ -1,3 +1,9 @@
+Number.prototype.toFixedDown = function(digits) {
+    var re = new RegExp("(\\d+\\.\\d{" + digits + "})(\\d)"),
+        m = this.toString().match(re);
+    return m ? parseFloat(m[1]) : this.valueOf();
+};
+
 function Mouse(x, y, sprite_name) {
 	Phaser.Sprite.call(this, game, x,y, sprite_name);
 	
@@ -7,7 +13,7 @@ function Mouse(x, y, sprite_name) {
     this._initialProperties = { x: x, y: y }
     this.eventState = { originalX: x, originalY: y }
 	
-    this.speed = 100;
+    this.speed = 150;
     this.solid = true;
     this.stunned = false;
     this.animations.add('walk_down', [0,1,2], true);
@@ -15,14 +21,15 @@ function Mouse(x, y, sprite_name) {
     this.animations.add('walk_right', [6,7,8], true);
     this.animations.add('walk_up', [9,10,11], true);
 
-    this.chaseThreshold = 175;
+    this.chaseThreshold = 125;
+    this.distanceThreshold = 33;
     
     game.physics.enable(this, Phaser.Physics.ARCADE);
     this.body.facing = Phaser.RIGHT;
     this.body.collideWorldBounds = true;
 
-    this.body.maxVelocity.x = 100;
-    this.body.maxVelocity.y = 100;
+    this.body.maxVelocity.x = 125;
+    this.body.maxVelocity.y = 125;
     //this.body.drag.x = 2000;
     //this.body.drag.y = 2000;
     this.body.drag.x = 100;
@@ -98,66 +105,80 @@ Mouse.prototype.update = function () {
 	if(this.script != null) {
 		var script_node = this.script['events'][this.scriptIndex];
 		// Have we fulfiled the last action?
-		var next_action = false;
-		if("velocity" in script_node) {
-			if(Math.round(this.x) == (this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x) && Math.round(this.y) == (this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)) {
-				next_action = true;
-			}
-		}
+		
+
 		
 		if("delay" in script_node) {
 			// Check if the delay duration has passed
-		}
-		
-		if(next_action == true) {
-			this.eventState.originalX = Math.round(this.body.x);
-			this.eventState.originalY = Math.round(this.body.y);
-			this.scriptIndex++;
-			if(this.scriptIndex >= this.script['events'].length) {
-				this.scriptIndex = 0;
-			}
-		}
+		}		
 		
 		/**
 		 * Process event
-		 */
+		 */	
 		var script_node = this.script['events'][this.scriptIndex];
 		if("velocity" in script_node) {
 			//console.debug(this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x + " / " + this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)
 			if(!this.stunned) {
-				game.physics.arcade.moveToXY(this, Math.round((this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x)), Math.round((this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y), this.speed))
+				game.physics.arcade.moveToXY(this, this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x, this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y, this.speed)
 			}
 		}
 		
 		//console.debug(game.physics.arcade.distanceBetween(this, PLAYERS[0]));
-		
-		if(game.physics.arcade.distanceBetween(this, PLAYERS[0]) <= this.chaseThreshold) {
+		var distance = game.physics.arcade.distanceBetween(this, PLAYERS[0])
+		if(distance <= this.chaseThreshold) {
 			//console.debug("Following")
 			if(!this.stunned) {
-				game.physics.arcade.moveToXY(this, PLAYERS[0].body.x, PLAYERS[0].body.y, this.speed);
+				game.physics.arcade.moveToXY(this, Math.round(PLAYERS[0].body.x + (PLAYERS[0].body.width /2)), Math.round(PLAYERS[0].body.y + (PLAYERS[0].body.height / 2)), this.speed);
 			}
 		}
 		
+		if(Math.floor(this.body.velocity.x) > 0) {
+			this.body.facing = Phaser.RIGHT;
+		} else if(Math.floor(this.body.velocity.x) < 0) {
+			this.body.facing = Phaser.LEFT;
+		} else if(Math.floor(this.body.velocity.y) > 0) {
+			this.body.facing = Phaser.UP;
+		} else if(Math.floor(this.body.velocity.y) < 0) {
+			this.body.facing = Phaser.DOWN;
+		}
+		
+		if(this.body.facing == Phaser.RIGHT) {
+			this.animations.play('walk_right', 5, true);
+			this.body.facing = Phaser.RIGHT;
+		} else if(this.body.facing == Phaser.LEFT) {
+			this.animations.play('walk_left', 5, true);
+			this.body.facing = Phaser.LEFT;
+		} else if(this.body.facing == Phaser.UP) {
+			this.animations.play('walk_up', 5, true);
+			this.body.facing = Phaser.UP;
+		} else if(this.body.facing == Phaser.DOWN) {
+			this.animations.play('walk_down', 5, true);
+			this.body.facing = Phaser.DOWN;
+		}
 
-	  if(this.body.facing == Phaser.RIGHT) {
-		  this.animations.play('walk_right', 5, true);
-		  this.body.facing = Phaser.RIGHT;
-	  } else if(this.body.facing == Phaser.LEFT) {
-		  this.animations.play('walk_left', 5, true);
-		  this.body.facing = Phaser.LEFT;
-	  } else if(this.body.facing == Phaser.UP) {
-		  this.animations.play('walk_up', 5, true);
-		  this.body.facing = Phaser.UP;
-	  } else if(this.body.facing == Phaser.DOWN) {
-	      this.animations.play('walk_down', 5, true);
-	      this.body.facing = Phaser.DOWN;
-	  }		
+		var next_action = false;
+		if("velocity" in script_node) {
+			if(Math.abs(this.x - (this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x)) < 10
+				&& Math.abs(this.y - (this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)) < 10			
+		) {
+				next_action = true;
+			}
+		}		
+		
+		if(next_action == true) {
+			this.eventState.originalX = this.body.x;
+			this.eventState.originalY = this.body.y;
+			this.scriptIndex++;
+			if(this.scriptIndex >= this.script['events'].length) {
+				this.scriptIndex = 0;
+			}
+		}		
 	}
 	
 	if(this.stunned) {
-		console.debug(this.body.velocity.x + "/" + this.body.velocity.y);
-		console.debug(this.body.x + "/" + this.body.y);
-		console.debug(PLAYERS[0].testing);
+		//console.debug(this.body.velocity.x + "/" + this.body.velocity.y);
+		//console.debug(this.body.x + "/" + this.body.y);
+		//console.debug(PLAYERS[0].testing);
 	}
 }
 

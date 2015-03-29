@@ -51,7 +51,7 @@ function Player(player_num, player_sprite, x, y) {
     this.name = "player" + player_num;
     this.group = "player" + player_num;
     this.solid = true;
-    this.speed = 100;
+    this.speed = 175;
 
     this.animations.add('walk_down', [0,1,2,3], true);
     this.animations.add('walk_left', [4,5,6,7], true);
@@ -65,13 +65,15 @@ function Player(player_num, player_sprite, x, y) {
 
     game.physics.enable(this, Phaser.Physics.ARCADE);
     this.body.collideWorldBounds = true;
-    this.body.setSize(70, 50, 0, (this.height - 30));
+    this.body.setSize(this.width - 10, this.height - 15, 5, 10);
     this.body.allowRotation = false;
-    this.body.maxVelocity.x = 100;
-    this.body.maxVelocity.y = 100;
+    this.body.maxVelocity.x = 150;
+    this.body.maxVelocity.y = 150;
     this.body.drag.x = 2000;
     this.body.drag.y = 2000;
     this.body.facing = Phaser.DOWN;
+    this.activeFacing = false;
+    this.stunned = false;
 
     // Override postUpdate so body.facing isn't changed.
     this.body.postUpdate = function () {
@@ -141,6 +143,15 @@ function Player(player_num, player_sprite, x, y) {
     this.tabKey = game.input.keyboard.addKey(Phaser.Keyboard.TAB);
     game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.TAB]);
     this.testing = 0;
+    
+    // Masking
+    //maskGraphic = OPGame.game.add.graphics(this.body.x + (this.body.width / 2), this.body.y + (this.body.height / 2))
+	//maskGraphic.beginFill(0xffff00, 0.5)
+	//maskGraphic.drawCircle(0, 0, 200);
+	//maskGraphic.blendMode = Phaser.blendModes.OVERLAY;
+	//maskGraphic.endFill();
+	//this.visionMask = OPGame.masks.vision.addChild(maskGraphic);
+    
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -208,32 +219,77 @@ Player.prototype.update = function () {
         /**
          * End gamepad detection and processing
          */
-
+        var movement = false;
         if (gamepad_left || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
             this.body.velocity.x -= speed;
-            this.animations.play('walk_left', 5, true);
-            this.body.facing = Phaser.LEFT;
+            //this.animations.play('walk_left', 5, true);
+            //this.body.facing = Phaser.LEFT;
             UI.clearSticky();
+            movement = true;
         } else if (gamepad_right || game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
             this.body.velocity.x += speed;
-            this.animations.play('walk_right', 5, true);
-            this.body.facing = Phaser.RIGHT;
+            //this.animations.play('walk_right', 5, true);
+            //this.body.facing = Phaser.RIGHT;
             UI.clearSticky();
-        } else if (gamepad_up || game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+            movement = true;
+        }
+        if (gamepad_up || game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
             this.body.velocity.y -= speed;
-            this.animations.play('walk_up', 5, true);
-            this.body.facing = Phaser.UP;
+            //this.animations.play('walk_up', 5, true);
+            //this.body.facing = Phaser.UP;
             UI.clearSticky();
+            movement = true;
         } else if (gamepad_down || game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
             this.body.velocity.y += speed;
-            this.animations.play('walk_down', 5, true);
-            this.body.facing = Phaser.DOWN;
+            //this.animations.play('walk_down', 5, true);
+            //this.body.facing = Phaser.DOWN;
             UI.clearSticky();
-        } else {
+            movement = true;
+        }
+        
+        gamepadActiveFacing = function (facing) {
+        	if(facing == Phaser.LEFT && gamepad_left) {
+        		return true;
+        	} else if(facing == Phaser.RIGHT && gamepad_right) {
+        		return true;
+        	} else if(facing == Phaser.UP && gamepad_up) {
+        		return true;
+        	} else if(facing == Phaser.DOWN && gamepad_down) {
+        		return true;
+        	}
+        	
+        	return false;
+        }
+        
+        if(!game.input.keyboard.isDown(this.activeFacing) && !gamepadActiveFacing(this.activeFacing)) {
+        	this.activeFacing = false;
+        }
+
+        if(this.activeFacing == false && this.body.immovable == false) {
+	        if (gamepad_left || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+	        	this.animations.play('walk_left', 5, true);
+	            this.body.facing = Phaser.LEFT;
+	        } else if (gamepad_right || game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+	        	this.animations.play('walk_right', 5, true);
+	            this.body.facing = Phaser.RIGHT;
+	        }
+	        if (gamepad_up || game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+	        	this.animations.play('walk_up', 5, true);
+	            this.body.facing = Phaser.UP;
+	        } else if (gamepad_down || game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+	        	this.animations.play('walk_down', 5, true);
+	            this.body.facing = Phaser.DOWN;
+	        }
+            this.activeFacing = this.body.facing;	        
+        }
+        
+        // @todo: Add movement code so character isn't sliding across screen
+        
+        if(movement == false) {
             this.animations.stop(null, 0);
         }
 
-        if(this.body.immovable == true) {
+        if(this.body.immovable == true || this.stunned == true) {
             this.body.velocity.y = 0;
             this.body.velocity.x = 0;
             this.animations.stop(null, 0);
@@ -245,39 +301,62 @@ Player.prototype.update = function () {
             this.body.velocity.x = 0;
             this.animations.stop(null, 0);
 
-            UI.clearSticky();
-            if (this.body.facing == Phaser.RIGHT) {
-            	console.debug("RIGHT");
-                this.hitbox.reset(this.x + (this.width / 2), this.y + (this.hitbox.body.height / 2));
-                this.hitbox.body.facing = Phaser.RIGHT;
-                this.hitbox.pivot.x = 0;
-                this.hitbox.pivot.y = -5;
-                this.hitbox.body.rotation = 0;
-            } else if (this.body.facing == Phaser.LEFT) {
-            	console.debug("LEFT");
-                this.hitbox.reset(this.x - (this.hitbox.body.width / 2), this.y + (this.hitbox.body.height / 2));
-                this.hitbox.pivot.x = 32;
-                this.hitbox.pivot.y = 5;
-                this.hitbox.body.rotation = 180// Math.PI;
-                this.hitbox.body.facing = Phaser.LEFT;
-            } else if (this.body.facing == Phaser.DOWN) {
-            	console.debug("DOWN");
-                this.hitbox.body.facing = Phaser.DOWN;
-                this.hitbox.reset(this.body.x, this.body.y + (this.body.height / 2 / 2));
-                this.hitbox.pivot.x = -2;
-                this.hitbox.pivot.y = 15
-                this.hitbox.body.rotation = 90;
-            } else if (this.body.facing == Phaser.UP) {
-            	console.debug("UP");
-                this.hitbox.reset(this.body.x, this.y - (this.hitbox.height / 2));
-                this.hitbox.body.facing = Phaser.UP;
-                this.hitbox.pivot.x = 32;
-                this.hitbox.pivot.y = -15
-                this.hitbox.body.rotation = -90;
-            }
+
 
             if(this.playerIndex == 0) {
-                if(this.hitbox.cooldown == false) {
+                UI.clearSticky();
+                if(this.hitbox.cooldown == false && this.stunned == false) {
+                	g = this.hitbox.children[0];
+	                if (this.body.facing == Phaser.RIGHT) {
+	                	console.debug("RIGHT");
+	                    this.hitbox.reset(this.x + (this.width / 2), this.y + (this.hitbox.body.height / 2));               	                	
+	                    this.hitbox.body.facing = Phaser.RIGHT;
+	                    
+	                    g.pivot.x = -(PLAYERS[0].width/2) + 10
+	                    g.pivot.y = -(PLAYERS[0].height / 2) + 10
+	                    g.rotation = 0 * (Math.PI/180)
+	                    
+	                    //this.hitbox.pivot.x = 0;
+	                    //this.hitbox.pivot.y = -5;
+	                    //this.hitbox.body.rotation = 0;
+	                } else if (this.body.facing == Phaser.LEFT) {
+	                	console.debug("LEFT");
+	                	this.hitbox.body.facing = Phaser.LEFT;
+	                    this.hitbox.reset(this.x - (this.hitbox.body.width / 2), this.y + (this.hitbox.body.height / 2));                   	
+	                    //this.hitbox.pivot.x = 32;
+	                    //this.hitbox.pivot.y = 5;
+	                    //this.hitbox.body.rotation = 180// Math.PI;
+	                    g.rotation = 180 * (Math.PI/180);
+	                    g.pivot.x = this.width / 2 + 8;
+	                    g.pivot.y = this.height / 2 - 10
+	                    
+	                } else if (this.body.facing == Phaser.DOWN) {
+	                	console.debug("DOWN");
+	                    this.hitbox.body.facing = Phaser.DOWN;
+	                    this.hitbox.reset(this.body.x, this.body.y + (this.body.height / 2 / 2));
+	                    //this.hitbox.pivot.x = -2;
+	                    //this.hitbox.pivot.y = 15
+	                    //this.hitbox.body.rotation = 90;
+	                    
+	                    g.rotation = 90 * (Math.PI/180)
+	                    g.pivot.x = -this.width / 2 + 10
+	                    g.pivot.y = this.height / 2 - 10
+	                    
+	                    
+	                    
+	                } else if (this.body.facing == Phaser.UP) {
+	                	console.debug("UP");
+	                    this.hitbox.body.facing = Phaser.UP;
+	                    this.hitbox.reset(this.body.x, this.y - (this.hitbox.height / 2));
+	                    //this.hitbox.pivot.x = 32;
+	                    //this.hitbox.pivot.y = -15
+	                    //this.hitbox.body.rotation = -90;
+	                    g.rotation = -90 * (Math.PI/180);
+	                    g.pivot.x = this.width / 2 + 10
+	                    g.pivot.y = -this.height / 2 + 10
+	                }           
+	                
+
                     attack_action = true;
                     this.body.immovable = true;
                     this.hitbox.visible = true;
@@ -286,7 +365,7 @@ Player.prototype.update = function () {
                     this.hitbox.cooldown = true;
 
                     this.show_hitbox_debug = true;
-                    game.add.tween(this.hitbox).to({alpha: 1.0}, 1000, Phaser.Easing.Linear.None, true).onComplete.add(function () {
+                    game.add.tween(this.hitbox).to({alpha: 1.0}, 400, Phaser.Easing.Linear.None, true).onComplete.add(function () {
                     	console.debug("Hide");
                         this.hitbox.cooldown = false;
                         this.hitbox.solid = false;
@@ -305,8 +384,6 @@ Player.prototype.update = function () {
             }
 
 
-        } else {
-        	console.debug("Not down");
         }
     } else {
         var player_indx = this.playerIndex;
@@ -341,7 +418,6 @@ Player.prototype.update = function () {
     }
 
     game.physics.arcade.collide(this, trigger_objects, function (obj1, obj2) {
-            console.debug(obj2.body.x + "/" + obj2.body.y);
             if(this.playerIndex == CURRENT_PLAYER_INDEX)
             CLIENT.queueObjectEvent(obj2);
             return true;
@@ -365,7 +441,7 @@ Player.prototype.update = function () {
     });
 
     // On collision, player is pushed away from mob
-    game.physics.arcade.overlap(players, mobs, function (player, mob) {
+    game.physics.arcade.overlap(players, OPGame.mobs, function (player, mob) {
         var velocity = [0, 0];
         if(player.body.x < mob.body.x + mob.body.width/2) {
             velocity[0] = -1;
@@ -379,21 +455,28 @@ Player.prototype.update = function () {
             velocity[1] = 1;
         }
 
-        player.body.velocity.x += velocity[0] * 100;
-        player.body.velocity.y += velocity[1] * 100;
+        player.body.velocity.x += velocity[0] * 200;
+        player.body.velocity.y += velocity[1] * 200;
+
+		var timer = OPGame.game.time.create(true);
+		timer.add(3000, function () {
+			this.stunned = false;			
+		}, mob);
+		timer.start();
+		mob.stunned = true;
 
         player.alpha = 1;
-
-        game.add.tween(player).to({ alpha: 0.1 }, 100, Phaser.Easing.Linear.None, true, 0, 10, true).onComplete.add(function (target, tween) {
+        player.stunned = true;
+        game.add.tween(player).to({ alpha: 0.1 }, 1000, Phaser.Easing.Linear.None, true, 0, 10, true).onComplete.add(function (target, tween) {
             if(target.alpha != 1) {
                 tween.to({alpha: 1}, 100, Phaser.Easing.Linear.None, true);
             }
 
-            if(target.alpha == 1) {
-                target.solid = true;
-                target.stunned = false;
-                target.animations.paused = false;
-            }
+            //if(target.alpha == 1) {
+            target.solid = true;
+            target.stunned = false;
+            target.animations.paused = false;
+            //}
         });
 
 
@@ -475,32 +558,35 @@ Player.prototype.update = function () {
     }
     
     if(this.show_hitbox_debug) {
-        body1 = this.hitbox.body;
-        g1 = game.add.graphics(body1.x, body1.y)
-        g1.beginFill(0xFF0000)
-        g1.drawCircle(0, 0, 5);
-        game.add.tween(g1).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
-        
-        g2 = game.add.graphics(body1.x, body1.bottom)
-        g2.beginFill(0x00FF00)
-        g2.drawCircle(0, 0, 5);
-        game.add.tween(g2).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
-        
-        g3 = game.add.graphics(body1.right, body1.y)
-        g3.beginFill(0xFF00FF)
-        g3.drawCircle(0, 0, 5);
-        game.add.tween(g3).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
-        
-        g4 = game.add.graphics(body1.right, body1.bottom)
-        g4.beginFill(0xCCCCCC)
-        g4.drawCircle(0, 0, 5);
-        game.add.tween(g4).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);    
+//        body1 = this.body;
+//        g1 = game.add.graphics(body1.x, body1.y)
+//        g1.beginFill(0xFF0000)
+//        g1.drawCircle(0, 0, 5);
+//        game.add.tween(g1).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
+//        
+//        g2 = game.add.graphics(body1.x, body1.bottom)
+//        g2.beginFill(0x00FF00)
+//        g2.drawCircle(0, 0, 5);
+//        game.add.tween(g2).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
+//        
+//        g3 = game.add.graphics(body1.right, body1.y)
+//        g3.beginFill(0xFF00FF)
+//        g3.drawCircle(0, 0, 5);
+//        game.add.tween(g3).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);
+//        
+//        g4 = game.add.graphics(body1.right, body1.bottom)
+//        g4.beginFill(0xCCCCCC)
+//        g4.drawCircle(0, 0, 5);
+//        game.add.tween(g4).to({ alpha: 0 }, 300, Phaser.Easing.Linear.None, true);    
 
     }
     
 
     //players.children[0].hitbox.solid = false;
     //players.children[1].hitbox.solid = false;
+    
+    //this.visionMask.x = this.x + (this.width / 2);
+    //this.visionMask.y = this.y + (this.height / 2)    
 }
 
 
