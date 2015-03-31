@@ -69,8 +69,8 @@ function Player(player_num, player_sprite, x, y) {
     this.body.allowRotation = false;
     this.body.maxVelocity.x = 150;
     this.body.maxVelocity.y = 150;
-    this.body.drag.x = 2000;
-    this.body.drag.y = 2000;
+    this.body.drag.x = 1000;
+    this.body.drag.y = 1000;
     this.body.facing = Phaser.DOWN;
     this.activeFacing = false;
     this.stunned = false;
@@ -138,10 +138,6 @@ function Player(player_num, player_sprite, x, y) {
     this.hitbox = this.initPlayerHitBox(player_num);
     this.show_hitbox_debug = false;
     
-    // Keyboard init
-    this.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-    this.tabKey = game.input.keyboard.addKey(Phaser.Keyboard.TAB);
-    game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.TAB]);
     this.testing = 0;
     
     // Masking
@@ -220,31 +216,33 @@ Player.prototype.update = function () {
          * End gamepad detection and processing
          */
         var movement = false;
-        if (gamepad_left || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-            this.body.velocity.x -= speed;
-            //this.animations.play('walk_left', 5, true);
-            //this.body.facing = Phaser.LEFT;
-            UI.clearSticky();
-            movement = true;
-        } else if (gamepad_right || game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
-            this.body.velocity.x += speed;
-            //this.animations.play('walk_right', 5, true);
-            //this.body.facing = Phaser.RIGHT;
-            UI.clearSticky();
-            movement = true;
-        }
-        if (gamepad_up || game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
-            this.body.velocity.y -= speed;
-            //this.animations.play('walk_up', 5, true);
-            //this.body.facing = Phaser.UP;
-            UI.clearSticky();
-            movement = true;
-        } else if (gamepad_down || game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
-            this.body.velocity.y += speed;
-            //this.animations.play('walk_down', 5, true);
-            //this.body.facing = Phaser.DOWN;
-            UI.clearSticky();
-            movement = true;
+        if(this.stunned == false) {
+	        if (gamepad_left || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+	            this.body.velocity.x -= speed;
+	            //this.animations.play('walk_left', 5, true);
+	            //this.body.facing = Phaser.LEFT;
+	            UI.clearSticky();
+	            movement = true;
+	        } else if (gamepad_right || game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+	            this.body.velocity.x += speed;
+	            //this.animations.play('walk_right', 5, true);
+	            //this.body.facing = Phaser.RIGHT;
+	            UI.clearSticky();
+	            movement = true;
+	        }
+	        if (gamepad_up || game.input.keyboard.isDown(Phaser.Keyboard.UP)) {
+	            this.body.velocity.y -= speed;
+	            //this.animations.play('walk_up', 5, true);
+	            //this.body.facing = Phaser.UP;
+	            UI.clearSticky();
+	            movement = true;
+	        } else if (gamepad_down || game.input.keyboard.isDown(Phaser.Keyboard.DOWN)) {
+	            this.body.velocity.y += speed;
+	            //this.animations.play('walk_down', 5, true);
+	            //this.body.facing = Phaser.DOWN;
+	            UI.clearSticky();
+	            movement = true;
+	        }
         }
         
         gamepadActiveFacing = function (facing) {
@@ -265,7 +263,7 @@ Player.prototype.update = function () {
         	this.activeFacing = false;
         }
 
-        if(this.activeFacing == false && this.body.immovable == false) {
+        if(this.activeFacing == false && this.body.immovable == false &&  this.stunned == false) {
 	        if (gamepad_left || game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
 	        	this.animations.play('walk_left', 5, true);
 	            this.body.facing = Phaser.LEFT;
@@ -289,17 +287,17 @@ Player.prototype.update = function () {
             this.animations.stop(null, 0);
         }
 
-        if(this.body.immovable == true || this.stunned == true) {
+        if(this.body.immovable == true) {
             this.body.velocity.y = 0;
             this.body.velocity.x = 0;
             this.animations.stop(null, 0);
         }
 
         var attack_action = false;
-        if(gamepad_a_just_down || this.spaceKey.justDown) {
-            this.body.velocity.y = 0;
-            this.body.velocity.x = 0;
-            this.animations.stop(null, 0);
+        if(gamepad_a_just_down || OPGame.controls.spaceKey.justDown) {
+            //this.body.velocity.y = 0;
+            //this.body.velocity.x = 0;
+            //this.animations.stop(null, 0);
 
 
 
@@ -455,19 +453,24 @@ Player.prototype.update = function () {
             velocity[1] = 1;
         }
 
-        player.body.velocity.x += velocity[0] * 200;
-        player.body.velocity.y += velocity[1] * 200;
+        player.body.velocity.x += velocity[0] * 1000;
+        player.body.velocity.y += velocity[1] * 1000;
+        console.debug(player.body.velocity.x + "," + player.body.velocity.y);
 
 		var timer = OPGame.game.time.create(true);
 		timer.add(3000, function () {
 			this.stunned = false;			
 		}, mob);
 		timer.start();
+		
+		mob.body.velocity.x = 0;
+		mob.body.velocity.y = 0;
 		mob.stunned = true;
 
         player.alpha = 1;
         player.stunned = true;
-        game.add.tween(player).to({ alpha: 0.1 }, 1000, Phaser.Easing.Linear.None, true, 0, 10, true).onComplete.add(function (target, tween) {
+        player.solid = false;
+        game.add.tween(player).to({ alpha: 0.1 }, 100, Phaser.Easing.Linear.None, true, 0, 6, true).onComplete.add(function (target, tween) {
             if(target.alpha != 1) {
                 tween.to({alpha: 1}, 100, Phaser.Easing.Linear.None, true);
             }
@@ -586,7 +589,9 @@ Player.prototype.update = function () {
     //players.children[1].hitbox.solid = false;
     
     //this.visionMask.x = this.x + (this.width / 2);
-    //this.visionMask.y = this.y + (this.height / 2)    
+    //this.visionMask.y = this.y + (this.height / 2)
+    
+    //console.debug(this.body.velocity.x + "," + this.body.velocity.y)
 }
 
 

@@ -202,3 +202,64 @@ function initTargetObjects(initial) {
 function updateOtherPlayer() {
 
 }
+
+var inventoryOverlay = function () {
+	this.init = function () {
+		
+		this.x = game.camera.x + 250;
+		this.y = game.camera.y + 250
+		this.cols = 4;
+		this.rows = 6;
+		
+		var square_width = 35, square_height = 35, square_padding = 15;
+		
+		this.graphics = game.add.graphics(0,0);
+        
+        this.graphics.visible = false;
+        this.graphics.beginFill(0x666666);
+        this.graphics.drawRect(this.x, this.y, (this.cols * (square_width + square_padding)) + square_padding, this.rows * (square_height + square_padding) + square_padding);
+        this.graphics.endFill();
+        
+        this.graphics.beginFill(0xCCCCCC);
+        for(var i = 0; i < this.rows; i++) {
+        	for(var h = 0; h < this.cols; h++) {
+        		square_x = this.x + square_padding + (h * (square_width + square_padding))
+        		square_y = this.y + + square_padding + (i * (square_height + square_padding))
+        		this.graphics.drawRect(square_x, square_y, square_width, square_height);
+        	}
+        }
+
+
+	}
+	
+	this.toggle = function () {
+		if(this.graphics.visible == false) {
+			this.graphics.visible = true;
+		} else {
+			this.graphics.visible = false;
+		}
+	}
+	
+	this.show = function () {
+		this.graphics.visible = true;
+	}
+	
+	this.hide = function () {
+		this.graphics.visible = false;
+	}
+	
+	this.init();
+}
+
+function initControls() {
+    // Keyboard init
+    OPGame.controls = {};
+    OPGame.controls.spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    OPGame.controls.tabKey = game.input.keyboard.addKey(Phaser.Keyboard.TAB);
+    OPGame.controls.IKey = game.input.keyboard.addKey(Phaser.Keyboard.I);
+    OPGame.controls.IKey.onDown.add(function () {
+    	OPGame.overlays.inventory.toggle();
+	})
+	
+    game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR, Phaser.Keyboard.TAB, Phaser.Keyboard.I]);
+}

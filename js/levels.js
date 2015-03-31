@@ -248,8 +248,15 @@ OPGame.WesternKingdom.prototype = {
 
     },
     create: function () {
+    	var getTimeDiff = function (start_time, end_time) {
+    		diff = end_time.getTime() - start_time.getTime();
+    		return diff / (1000);
+    	}
+    	
+    	var start_time = new Date();
     	console.debug("Creation phase...");
     	OPGame.masks = {};
+    	OPGame.overlays = {}
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.stage.backgroundColor = '#000000';
         game.stage.disableVisibilityChange = true;
@@ -276,10 +283,6 @@ OPGame.WesternKingdom.prototype = {
         //map.resizeWorld();
         game.world.setBounds(0, 0, map.width * map.tileWidth, map.height * map.tileHeight);
 
-        //map.addTilesetImage('GermaniaA2', 'GermaniaA2');    
-        //map.addTilesetImage('GermaniaA5', 'GermaniaA5');
-        //map.addTilesetImage('GermaniaA3', 'GermaniaA3');
-        //map.addTilesetImage('GermaniaA2', 'GermaniaA2');
         map.addTilesetImage('celianna_TileA1', 'celianna_TileA1');
         map.addTilesetImage('celianna_TileA2', 'celianna_TileA2');
         map.addTilesetImage('TileC', 'TileC');
@@ -289,6 +292,7 @@ OPGame.WesternKingdom.prototype = {
         map.addTilesetImage('gallery_501_35_8432', 'gallery_501_35_8432');
         map.addTilesetImage('AT-A2-CliffVS01-GroundTiles', 'AT-A2-CliffVS01-GroundTiles');
         
+        console.debug("Tile sets loaded: " + getTimeDiff(start_time, new Date()));
         
         /**
          * Add layers
@@ -297,22 +301,30 @@ OPGame.WesternKingdom.prototype = {
         OPGame.layers = [];
         OPGame.solid = [];
 
-        OPGame.tileLayers.add(map.createLayer('floor'));        
+        OPGame.tileLayers.add(map.createLayer('floor'));
+        
+        console.debug("Floor loaded: " + getTimeDiff(start_time, new Date()));
         layer = map.createLayer('water');
         OPGame.tileLayers.add(layer);
         OPGame.solid.push(layer);
-        map.setCollision([97, 98, 129, 130, 101, 102, 133, 134], true, 'water');
+        map.setCollision([97, 98, 99, 129, 130, 131, 101, 102, 133, 134], true, 'water');
+        console.debug("Water loaded: " + getTimeDiff(start_time, new Date()));
 
         OPGame.tileLayers.add(map.createLayer('path'));
+        console.debug("Path loaded: " + getTimeDiff(start_time, new Date()));
+        
         layer = map.createLayer('trees')
         OPGame.tileLayers.add(layer);
         OPGame.solid.push(layer);
         map.setCollisionBetween(1000, 2000, true, 'trees');
         
+        console.debug("Trees loaded: " + getTimeDiff(start_time, new Date()));
+        
         layer = map.createLayer('houses');
         OPGame.tileLayers.add(layer);
         OPGame.solid.push(layer);
-        map.setCollisionBetween(4000, 8000, true, 'houses');
+        map.setCollisionBetween(3800, 5000, true, 'houses');
+        console.debug("Houses loaded: " + getTimeDiff(start_time, new Date()));
         
         
         OPGame.tileLayers.add(map.createLayer('town-path'));
@@ -320,11 +332,14 @@ OPGame.WesternKingdom.prototype = {
         layer = map.createLayer('town');
         OPGame.tileLayers.add(layer);
         //OPGame.solid.push(layer);
+        console.debug("Town loaded: " + getTimeDiff(start_time, new Date()));
         
         layer = map.createLayer('town-objects')
         OPGame.tileLayers.add(layer);
         OPGame.solid.push(layer);
-        map.setCollisionBetween(0, 8000, true, 'town-objects');
+        map.setCollisionBetween(2600, 2900, true, 'town-objects');
+        map.setCollisionBetween(3100, 3200, true, 'town-objects');
+        console.debug("Town objects loaded: " + getTimeDiff(start_time, new Date()));
         
                 
         var  orbs = game.add.group();
@@ -333,15 +348,8 @@ OPGame.WesternKingdom.prototype = {
                 createFromTiledObject(element, orbs)
             }, this);
         }
-        
-        OPGame.torches = game.add.group();
-        if(results = findObjectsByType('torch', map, 'objects')) {
-            results.forEach(function(element) {
-                //createFromTiledObject(element, torches)
-            	OPGame.torches.add(new Torch('torch', element.x, element.y))
-            }, this);
-        }
-        
+        console.debug("Orbs loaded: " + getTimeDiff(start_time, new Date()));
+       
         
     	maskGraphic = OPGame.game.add.graphics(0, 0);
     	maskGraphic.beginFill(0xffffff, 1)
@@ -362,12 +370,12 @@ OPGame.WesternKingdom.prototype = {
         PLAYERS[1] = new Player(2, "player2", SERVER_STATE.data.players[1].position[0], SERVER_STATE.data.players[1].position[1]);
 
         //mobs = game.add.group();
-//        for (var i in SERVER_STATE.data.mobs) {
-//            var mob = SERVER_STATE.data.mobs[i];
-//            MOB = new Guardian(mob.x, mob.y, "mob.guardian");
-//            game.add.existing(MOB);
-//            mobs.add(MOB);
-//        }
+        //for (var i in SERVER_STATE.data.mobs) {
+        //	var mob = SERVER_STATE.data.mobs[i];
+        //	MOB = new Guardian(mob.x, mob.y, "mob.guardian");
+        //	game.add.existing(MOB);
+        //	mobs.add(MOB);
+        //}
 
         if (CURRENT_PLAYER_INDEX == undefined) {
             CURRENT_PLAYER_INDEX = 0;
@@ -393,6 +401,32 @@ OPGame.WesternKingdom.prototype = {
         OPGame.tileLayers2.add(map.createLayer('town-top'));
         OPGame.tileLayers2.add(map.createLayer('trees-top'));
         
+        /**
+         * Environment overlay
+         */
+        OPGame.environment = {}
+        OPGame.environment.dayPeriod = "DAY";
+
+        this.shadowTexture = OPGame.game.add.bitmapData(OPGame.game.world.width, OPGame.game.world.height);        
+        var lightSprite = OPGame.game.add.image(0, 0, this.shadowTexture);
+        lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
+        
+        this.moonlightTexture = OPGame.game.add.bitmapData(OPGame.game.world.width, OPGame.game.world.height);
+        //this.moonlightSprite = OPGame.game.add.image(0, 0, this.moonlightTexture);
+        //this.moonlightSprite.blendMode = Phaser.blendModes.NORMAL;
+        
+        OPGame.torches = game.add.group();
+        if(results = findObjectsByType('torch', map, 'objects')) {
+            results.forEach(function(element) {
+                //createFromTiledObject(element, torches)
+            	torch = new Torch('torch', element.x, element.y)
+            	torch.setShadowTexture(this.shadowTexture);
+            	OPGame.torches.add(torch)
+            	
+            }, this);
+        }
+        
+        
 
 
 
@@ -406,36 +440,17 @@ OPGame.WesternKingdom.prototype = {
         UI.show("Use arrow keys to move, and spacebar to interact.");
         UI.isSticky = true;
         
-        this.shadowTexture = OPGame.game.add.bitmapData(OPGame.game.world.width, OPGame.game.world.height);
+        OPGame.overlays.inventory = new inventoryOverlay();
         
-        var lightSprite = OPGame.game.add.image(0, 0, this.shadowTexture);
-        lightSprite.blendMode = Phaser.blendModes.MULTIPLY;
+        initControls();
         
-        overlay = OPGame.game.add.graphics(0, 0);
-        overlay.addChild(OPGame.game.add.graphics(0,0));
-        overlay.addChild(OPGame.game.add.graphics(0,0));
-        //overlay.fixedToCamera = true;
         
-        OPGame.overlays = { "environment": overlay }
-
-        //maskGraphic = OPGame.game.add.graphics(0, 0);
-    	//maskGraphic.beginFill(0xffff00, 1)
-    	//maskGraphic.drawCircle(2311, 2126, 200);
-    	//maskGraphic.endFill();
-    	
-    	
-    	//if(maskGraphic) {
-			//OPGame.masks.vision = maskGraphic;
-    	//}
-    	
-    	
-    	for(var i=0; i < OPGame.tileLayers.children.length; i++) {
-    		//OPGame.tileLayers.children[i].mask = OPGame.masks.vision;
-    	}
-    	
-    	for(var i=0; i < OPGame.tileLayers2.children.length; i++) {
-    		//OPGame.tileLayers2.children[i].mask = OPGame.masks.vision;
-    	}
+        
+        //overlay = OPGame.game.add.graphics(0, 0);
+        //overlay.addChild(OPGame.game.add.graphics(0,0));
+        //overlay.addChild(OPGame.game.add.graphics(0,0));
+        
+        //OPGame.overlays = { "environment": overlay }
     },
     update: function () {
         if (UI.isSticky == false) {
@@ -454,7 +469,6 @@ OPGame.WesternKingdom.prototype = {
     		game.physics.arcade.collide(PLAYERS[1], OPGame.solid[i]);	
         }
 
-
         game.physics.arcade.overlap(trigger_objects, trigger_objects, function (obj1, obj2) {
             // Make sure these aren't the same object, and it has a condition
             if (obj1.id != obj2.id && "condition" in obj2) {
@@ -465,64 +479,38 @@ OPGame.WesternKingdom.prototype = {
             return false;
         });
         
-        //overlay = OPGame.overlays.environment;
-        //overlay.clear();
-        //overlay.children[0].clear();
-        //overlay.children[1].clear();
-        
-        //darkness = overlay.children[0];
-        //darkness.blendMode = Phaser.blendModes.DARKEN;
-        //darkness.beginFill(0x000000, 0.8);
-        //darkness.drawRect(game.camera.x, game.camera.y, game.camera.width, game.camera.height);
-        this.shadowTexture.context.fillStyle = 'rgb(50, 50, 50)';
-        this.shadowTexture.context.fillRect(game.camera.x - 10, game.camera.y - 10, OPGame.game.width + 10, OPGame.game.height + 10);
-        
-        this.shadowTexture.context.beginPath();
-        this.shadowTexture.context.fillStyle = 'rgb(255, 255, 255)';
-        this.shadowTexture.context.arc(PLAYERS[0].x + (PLAYERS[0].width / 2), (PLAYERS[0].y + PLAYERS[0].height / 2), 50, 0, Math.PI*2);
-        this.shadowTexture.context.fill();
-        
-        var  light_radius = 100;
-    	for(var i=0; i < OPGame.torches.children.length; i++) {
-        	var torch = OPGame.torches.children[i]
-
-            var radius = light_radius + this.game.rnd.integerInRange(1,10);
-
-            // Draw circle of light with a soft edge
-            var gradient =
-                this.shadowTexture.context.createRadialGradient(
-                    torch.x + (torch.width / 2), torch.y + (torch.height / 2), light_radius * 0.75,
-                    torch.x + (torch.width / 2), torch.y + (torch.height / 2), radius);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+        this.shadowTexture.clear();
+        if(OPGame.environment.dayPeriod == "DAY" || OPGame.environment.dayPeriod == "AFTERNOON") {
+        	// fillter
+        } else {
+        	if(OPGame.environment.dayPeriod == "LATE_AFTERNOON") {
+        		darkness = 15;
+        	} else if(OPGame.environment.dayPeriod == "EVENING") {
+        		darkness = 50;
+        	} else if(OPGame.environment.dayPeriod == "NIGHT") {
+        		darkness = 75;
+        	} else if(OPGame.environment.dayPeriod == "MIDNIGHT") {
+        		darkness = 95;
+        	} else if(OPGame.environment.dayPeriod == "DUSK") {
+        		darkness = 90;
+        	}
+        	
+        	light_amount = Math.round(255 - 255 * (darkness / 100));
+            this.shadowTexture.context.fillStyle = 'rgb(' + light_amount + ', ' + light_amount + ', ' + light_amount + ')';
+            this.shadowTexture.context.fillRect(game.camera.x - 10, game.camera.y - 10, OPGame.game.width + 10, OPGame.game.height + 10);
             
             this.shadowTexture.context.beginPath();
-            this.shadowTexture.context.fillStyle = gradient; //'rgb(255, 255, 255)';        	
-            this.shadowTexture.context.arc(torch.x + (torch.width / 2), torch.y + (torch.height / 2), radius, 0, Math.PI*2);
+            this.shadowTexture.context.fillStyle = 'rgb(255, 255, 255)';
+            this.shadowTexture.context.arc(PLAYERS[0].x + (PLAYERS[0].width / 2), (PLAYERS[0].y + PLAYERS[0].height / 2), 50, 0, Math.PI*2);
             this.shadowTexture.context.fill();
+            this.shadowTexture.dirty = true;
+            
+            //this.moonlightTexture.context.fillStyle = 'rgb(0, 146, 219)';
+            //this.moonlightTexture.context.fillRect(game.camera.x - 10, game.camera.y - 10, OPGame.game.width + 10, OPGame.game.height + 10);
+            
         	
-    	}
-        
-        //this.shadowTexture.context.fill();
+        }
 
-        // This just tells the engine it should update the texture cache
-        this.shadowTexture.dirty = true;
-        //darkness.drawRect(game.camera.x, game.camera.y, game.camera.width, game.camera.height);
-        
-
-    	
-    	//torches = overlay.children[1]
-    	//torches.beginFill(0xFFFFFF, 0.8);
-    	//torches.blendMode = Phaser.blendModes.LIGHTEN;
-    	
-    	//for(var i=0; i < OPGame.torches.children.length; i++) {
-//    		var torch = OPGame.torches.children[i]
-    		//torches.drawCircle(torch.x + (torch.width / 2), torch.y + (torch.height / 2), 100);
-    	//}
-    	
-
-    	
-    	//overlay.drawCircle(PLAYERS[0].x + (PLAYERS[0].width / 2), PLAYERS[0].y + (PLAYERS[0].height / 2), 150);
         OPGame.masks.phased.x = PLAYERS[0].x + (PLAYERS[0].width / 2);
         OPGame.masks.phased.y = PLAYERS[0].y + (PLAYERS[0].height / 2);
 

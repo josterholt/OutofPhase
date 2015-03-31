@@ -116,63 +116,65 @@ Mouse.prototype.update = function () {
 		 * Process event
 		 */	
 		var script_node = this.script['events'][this.scriptIndex];
-		if("velocity" in script_node) {
-			//console.debug(this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x + " / " + this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)
-			if(!this.stunned) {
-				game.physics.arcade.moveToXY(this, this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x, this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y, this.speed)
+		if(this.stunned == false) {
+			if("velocity" in script_node) {
+				//console.debug(this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x + " / " + this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)
+				if(!this.stunned) {
+					game.physics.arcade.moveToXY(this, this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x, this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y, this.speed)
+				}
+			}
+			
+			//console.debug(game.physics.arcade.distanceBetween(this, PLAYERS[0]));
+			var distance = game.physics.arcade.distanceBetween(this, PLAYERS[0])
+			if(distance <= this.chaseThreshold) {
+				//console.debug("Following")
+				if(!this.stunned) {
+					game.physics.arcade.moveToXY(this, Math.round(PLAYERS[0].body.x + (PLAYERS[0].body.width /2)), Math.round(PLAYERS[0].body.y + (PLAYERS[0].body.height / 2)), this.speed);
+				}
+			}
+			
+			if(Math.floor(this.body.velocity.x) > 0) {
+				this.body.facing = Phaser.RIGHT;
+			} else if(Math.floor(this.body.velocity.x) < 0) {
+				this.body.facing = Phaser.LEFT;
+			} else if(Math.floor(this.body.velocity.y) > 0) {
+				this.body.facing = Phaser.UP;
+			} else if(Math.floor(this.body.velocity.y) < 0) {
+				this.body.facing = Phaser.DOWN;
+			}
+			
+			if(this.body.facing == Phaser.RIGHT) {
+				this.animations.play('walk_right', 5, true);
+				this.body.facing = Phaser.RIGHT;
+			} else if(this.body.facing == Phaser.LEFT) {
+				this.animations.play('walk_left', 5, true);
+				this.body.facing = Phaser.LEFT;
+			} else if(this.body.facing == Phaser.UP) {
+				this.animations.play('walk_up', 5, true);
+				this.body.facing = Phaser.UP;
+			} else if(this.body.facing == Phaser.DOWN) {
+				this.animations.play('walk_down', 5, true);
+				this.body.facing = Phaser.DOWN;
+			}
+	
+			var next_action = false;
+			if("velocity" in script_node) {
+				if(Math.abs(this.x - (this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x)) < 10
+					&& Math.abs(this.y - (this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)) < 10			
+			) {
+					next_action = true;
+				}
+			}		
+			
+			if(next_action == true) {
+				this.eventState.originalX = this.body.x;
+				this.eventState.originalY = this.body.y;
+				this.scriptIndex++;
+				if(this.scriptIndex >= this.script['events'].length) {
+					this.scriptIndex = 0;
+				}
 			}
 		}
-		
-		//console.debug(game.physics.arcade.distanceBetween(this, PLAYERS[0]));
-		var distance = game.physics.arcade.distanceBetween(this, PLAYERS[0])
-		if(distance <= this.chaseThreshold) {
-			//console.debug("Following")
-			if(!this.stunned) {
-				game.physics.arcade.moveToXY(this, Math.round(PLAYERS[0].body.x + (PLAYERS[0].body.width /2)), Math.round(PLAYERS[0].body.y + (PLAYERS[0].body.height / 2)), this.speed);
-			}
-		}
-		
-		if(Math.floor(this.body.velocity.x) > 0) {
-			this.body.facing = Phaser.RIGHT;
-		} else if(Math.floor(this.body.velocity.x) < 0) {
-			this.body.facing = Phaser.LEFT;
-		} else if(Math.floor(this.body.velocity.y) > 0) {
-			this.body.facing = Phaser.UP;
-		} else if(Math.floor(this.body.velocity.y) < 0) {
-			this.body.facing = Phaser.DOWN;
-		}
-		
-		if(this.body.facing == Phaser.RIGHT) {
-			this.animations.play('walk_right', 5, true);
-			this.body.facing = Phaser.RIGHT;
-		} else if(this.body.facing == Phaser.LEFT) {
-			this.animations.play('walk_left', 5, true);
-			this.body.facing = Phaser.LEFT;
-		} else if(this.body.facing == Phaser.UP) {
-			this.animations.play('walk_up', 5, true);
-			this.body.facing = Phaser.UP;
-		} else if(this.body.facing == Phaser.DOWN) {
-			this.animations.play('walk_down', 5, true);
-			this.body.facing = Phaser.DOWN;
-		}
-
-		var next_action = false;
-		if("velocity" in script_node) {
-			if(Math.abs(this.x - (this.eventState.originalX + script_node.velocity[0] * this.tileDimensions.x)) < 10
-				&& Math.abs(this.y - (this.eventState.originalY + script_node.velocity[1] * this.tileDimensions.y)) < 10			
-		) {
-				next_action = true;
-			}
-		}		
-		
-		if(next_action == true) {
-			this.eventState.originalX = this.body.x;
-			this.eventState.originalY = this.body.y;
-			this.scriptIndex++;
-			if(this.scriptIndex >= this.script['events'].length) {
-				this.scriptIndex = 0;
-			}
-		}		
 	}
 	
 	if(this.stunned) {

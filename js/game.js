@@ -137,5 +137,6 @@ function startGame() {
     game.state.add('Level1', OPGame.Level1);
     game.state.add('WesternKingdom', OPGame.WesternKingdom);
     OPGame.game = game;
+        
     game.state.start('WesternKingdom');
 }
